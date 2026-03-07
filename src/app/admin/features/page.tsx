@@ -12,6 +12,7 @@ interface FeatureFlag {
   description: string | null;
   category: string;
   enabled: boolean;
+  config: Record<string, any> | null;
 }
 
 const CATEGORIES = ['core', 'ai', 'collaboration', 'business', 'student', 'notifications'];
@@ -58,6 +59,8 @@ export default function FeaturesPage() {
   const [loading, setLoading] = useState(false);
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
   const [filter, setFilter] = useState<string>('all');
+  const [editingConfig, setEditingConfig] = useState<string | null>(null);
+  const [configDraft, setConfigDraft] = useState<string>('');
 
   useEffect(() => {
     if (!isLoggedIn()) { router.replace('/login'); return; }
@@ -109,6 +112,18 @@ export default function FeaturesPage() {
     }
     setToast({ message: `All ${CATEGORY_LABELS[category] || category} features disabled`, type: 'success' });
     loadFeatures();
+  };
+
+  const saveConfig = async (key: string) => {
+    try {
+      const parsed = JSON.parse(configDraft);
+      await updateFeatureFlag(key, { config: parsed });
+      setToast({ message: 'Config updated', type: 'success' });
+      setEditingConfig(null);
+      loadFeatures();
+    } catch (err: any) {
+      setToast({ message: err.message || 'Invalid JSON', type: 'error' });
+    }
   };
 
   if (!authorized) return null;
@@ -242,6 +257,45 @@ export default function FeaturesPage() {
                             </span>
                             <span className="text-[10px] text-gray-600">{feat.key}</span>
                           </div>
+
+                          {/* Config display */}
+                          {feat.config && Object.keys(feat.config).length > 0 && (
+                            <div className="mt-3 pt-2 border-t border-white/[0.06]">
+                              {editingConfig === feat.key ? (
+                                <div className="space-y-2">
+                                  <textarea
+                                    value={configDraft}
+                                    onChange={e => setConfigDraft(e.target.value)}
+                                    className="w-full bg-navy-950/80 border border-brass-400/10 rounded px-2 py-1.5 text-[11px] text-gray-300 font-mono resize-none focus:outline-none focus:border-brass-400/30"
+                                    rows={4}
+                                  />
+                                  <div className="flex gap-1.5">
+                                    <button onClick={() => saveConfig(feat.key)} className="text-[10px] px-2 py-1 rounded bg-emerald-400/20 text-emerald-300 hover:bg-emerald-400/30">Save</button>
+                                    <button onClick={() => setEditingConfig(null)} className="text-[10px] px-2 py-1 rounded bg-white/5 text-gray-400 hover:bg-white/10">Cancel</button>
+                                  </div>
+                                </div>
+                              ) : (
+                                <div className="flex items-start justify-between gap-2">
+                                  <div className="space-y-0.5">
+                                    {Object.entries(feat.config).map(([k, v]) => (
+                                      <div key={k} className="text-[10px]">
+                                        <span className="text-gray-500">{k.replace(/_/g, ' ')}:</span>{' '}
+                                        <span className="text-gray-300">
+                                          {Array.isArray(v) ? v.join(', ') : v === -1 ? 'Unlimited' : String(v)}
+                                        </span>
+                                      </div>
+                                    ))}
+                                  </div>
+                                  <button
+                                    onClick={() => { setEditingConfig(feat.key); setConfigDraft(JSON.stringify(feat.config, null, 2)); }}
+                                    className="text-[10px] text-brass-400 hover:text-brass-300 flex-shrink-0"
+                                  >
+                                    Edit
+                                  </button>
+                                </div>
+                              )}
+                            </div>
+                          )}
                         </div>
                       </div>
                     ))}

@@ -73,4 +73,5 @@ export const ROUTE_FEATURE_MAP: Record<string, string> = {
   '/audit-logs': 'audit_logs',
   '/push-notifications': 'push_notifications',
   '/support': 'support',
+  '/forum': 'forum',
 };
