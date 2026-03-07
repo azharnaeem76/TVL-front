@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+  <!-- Gavel head: horizontal rect rotated -45deg around its center -->
+  <g transform="rotate(-45, 22, 16)">
+    <rect x="6" y="10" width="32" height="12" rx="3.5" fill="#B8860B"/>
+    <rect x="6" y="10" width="32" height="12" rx="3.5" fill="url(#head-g)"/>
+    <!-- Brass band -->
+    <rect x="18" y="10" width="8" height="12" fill="#DAA520"/>
+    <rect x="18" y="10" width="8" height="12" fill="url(#band-g)"/>
+    <!-- Top highlight -->
+    <rect x="6" y="10" width="32" height="4" rx="3.5" fill="white" opacity="0.1"/>
+  </g>
+  <!-- Handle -->
+  <line x1="28" y1="24" x2="46" y2="46" stroke="url(#handle-g)" stroke-width="4.5" stroke-linecap="round"/>
+  <!-- Handle highlight -->
+  <line x1="27.5" y1="23.5" x2="45" y2="44.5" stroke="white" stroke-width="1" stroke-linecap="round" opacity="0.08"/>
+  <!-- Sound block top -->
+  <rect x="10" y="50" width="28" height="5" rx="2" fill="#A67C1A"/>
+  <rect x="10" y="50" width="28" height="5" rx="2" fill="url(#block1-g)"/>
+  <!-- Sound block base -->
+  <rect x="7" y="55" width="34" height="6" rx="2.5" fill="#6B4F10"/>
+  <rect x="7" y="55" width="34" height="6" rx="2.5" fill="url(#block2-g)"/>
+  <!-- Block highlight -->
+  <rect x="12" y="51" width="20" height="2" rx="1" fill="white" opacity="0.06"/>
+  <defs>
+    <linearGradient id="head-g" x1="6" y1="10" x2="38" y2="22" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#D4A020"/>
+      <stop offset="50%" stop-color="#B8860B"/>
+      <stop offset="100%" stop-color="#8B6914"/>
+    </linearGradient>
+    <linearGradient id="band-g" x1="18" y1="10" x2="26" y2="22" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#FFD700" stop-opacity="0.4"/>
+      <stop offset="100%" stop-color="#B8860B" stop-opacity="0.2"/>
+    </linearGradient>
+    <linearGradient id="handle-g" x1="28" y1="24" x2="46" y2="46" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#A67C1A"/>
+      <stop offset="100%" stop-color="#5C4210"/>
+    </linearGradient>
+    <linearGradient id="block1-g" x1="10" y1="50" x2="38" y2="55" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#8B6914"/>
+      <stop offset="50%" stop-color="#A67C1A"/>
+      <stop offset="100%" stop-color="#8B6914"/>
+    </linearGradient>
+    <linearGradient id="block2-g" x1="7" y1="55" x2="41" y2="61" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#5C4210"/>
+      <stop offset="50%" stop-color="#6B4F10"/>
+      <stop offset="100%" stop-color="#4A3508"/>
+    </linearGradient>
+  </defs>
+</svg>
