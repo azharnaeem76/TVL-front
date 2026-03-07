@@ -5,7 +5,6 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { getCurrentUser } from '@/lib/api';
 import { LegalGlossaryPanel } from '@/components/LegalGlossary';
-import NotificationBell from '@/components/NotificationBell';
 import { useFeatureFlags, ROUTE_FEATURE_MAP } from '@/lib/features';
 
 interface SidebarLink {
@@ -47,6 +46,7 @@ const ICO = {
   mootCourt: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 3v17.25m0 0c-1.472 0-2.882.265-4.185.75M12 20.25c1.472 0 2.882.265 4.185.75M18.75 4.97A48.416 48.416 0 0012 4.5c-2.291 0-4.545.16-6.75.47m13.5 0c1.01.143 2.01.317 3 .52m-3-.52l2.62 10.726c.122.499-.106 1.028-.589 1.202a5.988 5.988 0 01-2.031.352 5.988 5.988 0 01-2.031-.352c-.483-.174-.711-.703-.59-1.202L18.75 4.971zm-16.5.52c.99-.203 1.99-.377 3-.52m0 0l2.62 10.726c.122.499-.106 1.028-.589 1.202a5.989 5.989 0 01-2.031.352 5.989 5.989 0 01-2.031-.352c-.483-.174-.711-.703-.59-1.202L5.25 4.971z" /></svg>,
   examPrep: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4.26 10.147a60.438 60.438 0 00-.491 6.347A48.62 48.62 0 0112 20.904a48.62 48.62 0 018.232-4.41 60.46 60.46 0 00-.491-6.347m-15.482 0a50.636 50.636 0 00-2.658-.813A59.906 59.906 0 0112 3.493a59.903 59.903 0 0110.399 5.84c-.896.248-1.783.52-2.658.814m-15.482 0A50.717 50.717 0 0112 13.489a50.702 50.702 0 017.74-3.342M6.75 15a.75.75 0 100-1.5.75.75 0 000 1.5zm0 0v-3.675A55.378 55.378 0 0112 8.443m-7.007 11.55A5.981 5.981 0 006.75 15.75v-1.5" /></svg>,
   auditLog: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 002.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 00-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 00.75-.75 2.25 2.25 0 00-.1-.664m-5.8 0A2.251 2.251 0 0113.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25z" /></svg>,
+  forum: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20.25 8.511c.884.284 1.5 1.128 1.5 2.097v4.286c0 1.136-.847 2.1-1.98 2.193-.34.027-.68.052-1.02.072v3.091l-3-3c-1.354 0-2.694-.055-4.02-.163a2.115 2.115 0 01-.825-.242m9.345-8.334a2.126 2.126 0 00-.476-.095 48.64 48.64 0 00-8.048 0c-1.131.094-1.976 1.057-1.976 2.192v4.286c0 .837.46 1.58 1.155 1.951m9.345-8.334V6.637c0-1.621-1.152-3.026-2.76-3.235A48.455 48.455 0 0011.25 3c-2.115 0-4.198.137-6.24.402-1.608.209-2.76 1.614-2.76 3.235v6.226c0 1.621 1.152 3.026 2.76 3.235.577.075 1.157.14 1.74.194V21l4.155-4.155" /></svg>,
   support: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16.712 4.33a9.027 9.027 0 011.652 1.306c.51.51.944 1.064 1.306 1.652M16.712 4.33l-3.448 4.138m3.448-4.138a9.014 9.014 0 00-9.424 0M19.67 7.288l-4.138 3.448m4.138-3.448a9.014 9.014 0 010 9.424m-4.138-5.976a3.736 3.736 0 00-.88-1.388 3.737 3.737 0 00-1.388-.88m2.268 2.268a3.765 3.765 0 010 2.528m-2.268-4.796l-3.448 4.138m5.716-.37l-4.138 3.448M7.288 4.33l3.448 4.138m0 0a3.765 3.765 0 00-2.528 0m0 0l-4.138-3.448M4.33 7.288l4.138 3.448m-4.138-3.448A9.027 9.027 0 003 12a9.014 9.014 0 001.33 4.712m0-9.424a9.014 9.014 0 000 9.424m4.138-5.976a3.736 3.736 0 00-.88 1.388 3.765 3.765 0 000 2.528m.88 1.388l-4.138 3.448m4.138-3.448a3.736 3.736 0 001.388.88m-5.526 2.568a9.027 9.027 0 004.382 2.652M7.288 19.67l3.448-4.138m-3.448 4.138a9.014 9.014 0 009.424 0m-9.424 0A9.027 9.027 0 013 12a9.027 9.027 0 014.288-7.67m5.976 15.34l-3.448-4.138m3.448 4.138a9.027 9.027 0 004.382-2.652M12 3a9.027 9.027 0 014.712 1.33m-1.976 14.34l3.448-4.138m0 0a3.736 3.736 0 00.88-1.388 3.765 3.765 0 000-2.528m-.88-1.388l4.138-3.448m-4.138 8.804l4.138 3.448m-4.138-3.448a3.737 3.737 0 01-1.388.88m5.526 2.568A9.027 9.027 0 0021 12a9.027 9.027 0 00-1.33-4.712" /></svg>,
 };
 
@@ -88,6 +88,7 @@ function getSidebarLinks(role: string): { section: string; links: SidebarLink[] 
           { href: '/calendar', label: 'Calendar', icon: ICO.calendar },
           { href: '/news', label: 'News', icon: ICO.news },
           { href: '/directory', label: 'Lawyer Directory', icon: ICO.directory },
+          { href: '/forum', label: 'Community Forum', icon: ICO.forum },
           { href: '/team-workspaces', label: 'Team Workspaces', icon: ICO.team },
         ]},
         { section: 'Business', links: [
@@ -132,6 +133,7 @@ function getSidebarLinks(role: string): { section: string; links: SidebarLink[] 
           { href: '/documents', label: 'Document Analysis', icon: ICO.documents },
           { href: '/bookmarks', label: 'Bookmarks', icon: ICO.bookmarks },
           { href: '/directory', label: 'Lawyer Directory', icon: ICO.directory },
+          { href: '/forum', label: 'Community Forum', icon: ICO.forum },
           { href: '/news', label: 'Legal News', icon: ICO.news },
           { href: '/payments', label: 'Payments', icon: ICO.payment },
           { href: '/subscriptions', label: 'Plans', icon: ICO.subscription },
@@ -161,6 +163,7 @@ function getSidebarLinks(role: string): { section: string; links: SidebarLink[] 
           { href: '/analytics', label: 'Analytics', icon: ICO.analytics },
           { href: '/news', label: 'Legal News', icon: ICO.news },
           { href: '/directory', label: 'Directory', icon: ICO.directory },
+          { href: '/forum', label: 'Community Forum', icon: ICO.forum },
         ]},
         { section: 'Account', links: [
           { href: '/documents', label: 'Document Analysis', icon: ICO.documents },
@@ -191,6 +194,7 @@ function getSidebarLinks(role: string): { section: string; links: SidebarLink[] 
         { section: 'Practice', links: [
           { href: '/ai-summarizer', label: 'AI Summarizer', icon: ICO.aiTool },
           { href: '/drafting', label: 'Draft Documents', icon: ICO.drafting },
+          { href: '/forum', label: 'Community Forum', icon: ICO.forum },
           { href: '/bookmarks', label: 'Bookmarks', icon: ICO.bookmarks },
           { href: '/support', label: 'Help & Support', icon: ICO.support },
           { href: '/settings', label: 'Settings', icon: ICO.settings },
@@ -224,6 +228,7 @@ function getSidebarLinks(role: string): { section: string; links: SidebarLink[] 
           { href: '/calendar', label: 'Calendar', icon: ICO.calendar },
           { href: '/news', label: 'News', icon: ICO.news },
           { href: '/directory', label: 'Lawyer Directory', icon: ICO.directory },
+          { href: '/forum', label: 'Community Forum', icon: ICO.forum },
           { href: '/team-workspaces', label: 'Team Workspaces', icon: ICO.team },
         ]},
         { section: 'Business', links: [
@@ -250,6 +255,7 @@ function getSidebarLinks(role: string): { section: string; links: SidebarLink[] 
           { href: '/drafting', label: 'Documents', icon: ICO.drafting },
           { href: '/consultations', label: 'Book Consultation', icon: ICO.consultation },
           { href: '/messaging', label: 'Messages', icon: ICO.messaging },
+          { href: '/forum', label: 'Community Forum', icon: ICO.forum },
           { href: '/news', label: 'Legal News', icon: ICO.news },
         ]},
         { section: 'Account', links: [
@@ -329,7 +335,6 @@ export default function AppSidebar() {
           <p className="text-sm font-medium text-white truncate">{user.full_name}</p>
           <p className="text-[10px] text-brass-400/60 uppercase tracking-wider">{ROLE_LABELS[user.role] || user.role}</p>
         </div>
-        <NotificationBell />
       </div>
 
       {/* Nav sections */}

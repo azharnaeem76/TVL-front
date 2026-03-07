@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import Navbar from '@/components/Navbar';
 import { useToast } from '@/components/Toast';
-import { getCurrentUser, getConversations, getConversationMessages, sendDirectMessage, sendFileMessage, getMessagingContacts } from '@/lib/api';
+import { getCurrentUser, getConversations, getConversationMessages, sendDirectMessage, sendFileMessage, getMessagingContacts, deleteConversation, deleteMessage } from '@/lib/api';
 import { useSocket } from '@/lib/socket';
 
 const EMOJI_LIST = [
@@ -24,6 +24,8 @@ export default function MessagingPage() {
   const [users, setUsers] = useState<any[]>([]);
   const [userSearch, setUserSearch] = useState('');
   const [showEmoji, setShowEmoji] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<any>(null);
+  const [newChatMsg, setNewChatMsg] = useState('');
   const [recording, setRecording] = useState(false);
   const [recordingTime, setRecordingTime] = useState(0);
   const [previewFile, setPreviewFile] = useState<any>(null);
@@ -54,7 +56,10 @@ export default function MessagingPage() {
       });
     });
     const unsub2 = on('unread_update', () => { loadConversations(); });
-    return () => { unsub1(); unsub2(); };
+    const unsub3 = on('message_deleted', (data: { message_id: number }) => {
+      setMessages(prev => prev.filter(m => m.id !== data.message_id));
+    });
+    return () => { unsub1(); unsub2(); unsub3(); };
   }, [connected, on]);
 
   const loadConversations = async () => {
@@ -89,16 +94,22 @@ export default function MessagingPage() {
     setSending(false);
   };
 
-  const startNewChat = async (userId: number) => {
+  const startNewChat = async (userId: number, message: string) => {
     if (userId === currentUser?.id) {
       showToast('Cannot message yourself', 'error');
       return;
     }
+    if (!message.trim()) {
+      showToast('Please type a message', 'error');
+      return;
+    }
     setSending(true);
     try {
-      const msg = await sendDirectMessage(userId, 'Hello! I would like to connect with you.');
+      const msg = await sendDirectMessage(userId, message.trim());
       setShowNewChat(false);
       setUserSearch('');
+      setSelectedUser(null);
+      setNewChatMsg('');
       await loadConversations();
       const convs = await getConversations();
       const conv = (Array.isArray(convs) ? convs : []).find((c: any) => c.id === msg.conversation_id);
@@ -219,16 +230,72 @@ export default function MessagingPage() {
     return `${m}:${String(s).padStart(2, '0')}`;
   };
 
+  // ─── Delete Handlers ──────────────────────────────────────────
+  const handleDeleteConversation = async (convId: number) => {
+    if (!confirm('Delete this entire conversation? This cannot be undone.')) return;
+    try {
+      await deleteConversation(convId);
+      setConversations(prev => prev.filter(c => c.id !== convId));
+      if (activeConv?.id === convId) {
+        setActiveConv(null);
+        setMessages([]);
+      }
+      showToast('Conversation deleted', 'success');
+    } catch (err: any) {
+      showToast(err.message || 'Failed to delete', 'error');
+    }
+  };
+
+  const handleDeleteMessage = async (msgId: number, forEveryone: boolean) => {
+    const label = forEveryone ? 'Delete this message for everyone?' : 'Delete this message?';
+    if (!confirm(label)) return;
+    try {
+      await deleteMessage(msgId, forEveryone);
+      if (forEveryone) {
+        setMessages(prev => prev.filter(m => m.id !== msgId));
+      } else {
+        setMessages(prev => prev.map(m => m.id === msgId ? { ...m, content: 'This message was deleted', message_type: 'deleted', file_url: null } : m));
+      }
+      showToast(forEveryone ? 'Message deleted for everyone' : 'Message deleted', 'success');
+    } catch (err: any) {
+      showToast(err.message || 'Failed to delete', 'error');
+    }
+  };
+
   // ─── Message Renderer ──────────────────────────────────────────
   const renderMessage = (msg: any) => {
     const isMe = msg.sender_id === currentUser?.id;
     const type = msg.message_type || 'text';
 
     return (
-      <div key={msg.id} className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
-        <div className={`max-w-[70%] rounded-xl text-sm overflow-hidden ${
+      <div key={msg.id} className={`flex group ${isMe ? 'justify-end' : 'justify-start'}`}>
+        <div className={`max-w-[70%] rounded-xl text-sm overflow-hidden relative ${
           isMe ? 'bg-brass-400/20 text-brass-200' : 'bg-white/[0.06] text-gray-300'
         }`}>
+          {isMe && msg.message_type !== 'deleted' && (
+            <div className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity flex gap-0.5">
+              <button
+                onClick={() => handleDeleteMessage(msg.id, false)}
+                className="w-5 h-5 rounded-full bg-gray-500/20 text-gray-400 flex items-center justify-center hover:bg-gray-500/40"
+                title="Delete for me"
+              >
+                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+              </button>
+              <button
+                onClick={() => handleDeleteMessage(msg.id, true)}
+                className="w-5 h-5 rounded-full bg-red-500/20 text-red-400 flex items-center justify-center hover:bg-red-500/40"
+                title="Delete for everyone"
+              >
+                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" /></svg>
+              </button>
+            </div>
+          )}
+          {type === 'deleted' && (
+            <div className="p-3">
+              <p className="italic text-gray-500 text-xs">This message was deleted</p>
+            </div>
+          )}
+
           {type === 'text' && (
             <div className="p-3">
               <p className="whitespace-pre-wrap">{msg.content}</p>
@@ -276,7 +343,20 @@ export default function MessagingPage() {
             </a>
           )}
 
-          <p className="text-[10px] text-gray-500 px-3 pb-2">{new Date(msg.created_at).toLocaleTimeString()}</p>
+          <div className="flex items-center gap-1 px-3 pb-2">
+            <p className="text-[10px] text-gray-500">{new Date(msg.created_at).toLocaleTimeString()}</p>
+            {isMe && (
+              <span className="text-[10px]">
+                {msg.status === 'seen' ? (
+                  <svg className="w-3.5 h-3.5 text-blue-400 inline" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}><path d="M1 12l5 5L17 6M7 12l5 5L23 6" /></svg>
+                ) : msg.status === 'delivered' ? (
+                  <svg className="w-3.5 h-3.5 text-gray-400 inline" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}><path d="M1 12l5 5L17 6M7 12l5 5L23 6" /></svg>
+                ) : (
+                  <svg className="w-3.5 h-3.5 text-gray-500 inline" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}><path d="M5 12l5 5L20 6" /></svg>
+                )}
+              </span>
+            )}
+          </div>
         </div>
       </div>
     );
@@ -340,6 +420,13 @@ export default function MessagingPage() {
                       <p className="text-white font-medium">{activeConv.other_user?.name}</p>
                       <p className="text-xs text-gray-500 capitalize">{activeConv.other_user?.role}</p>
                     </div>
+                    <button
+                      onClick={() => handleDeleteConversation(activeConv.id)}
+                      className="p-2 text-gray-500 hover:text-red-400 transition-colors rounded-lg hover:bg-red-500/10"
+                      title="Delete conversation"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" /></svg>
+                    </button>
                   </div>
                   <div className="flex-1 overflow-y-auto p-4 space-y-3">
                     {messages.map(renderMessage)}
@@ -430,34 +517,63 @@ export default function MessagingPage() {
             <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
               <div className="bg-navy-900 border border-brass-400/20 rounded-xl p-6 w-full max-w-md">
                 <div className="flex justify-between items-center mb-4">
-                  <h2 className="text-lg font-semibold text-white">✨ New Message</h2>
-                  <button onClick={() => { setShowNewChat(false); setUserSearch(''); }} className="text-gray-400 hover:text-white text-xl">&times;</button>
+                  <h2 className="text-lg font-semibold text-white">New Message</h2>
+                  <button onClick={() => { setShowNewChat(false); setUserSearch(''); setSelectedUser(null); setNewChatMsg(''); }} className="text-gray-400 hover:text-white text-xl">&times;</button>
                 </div>
-                <input value={userSearch} onChange={(e) => setUserSearch(e.target.value)} placeholder="Search users..."
-                  className="w-full bg-navy-950 border border-brass-400/10 rounded-lg px-4 py-2.5 text-gray-200 placeholder-gray-500 focus:outline-none mb-3 text-sm" />
-                <div className="max-h-60 overflow-y-auto space-y-1">
-                  {sending ? (
-                    <div className="flex items-center justify-center py-8 gap-2">
-                      <div className="w-4 h-4 border-2 border-brass-400/40 border-t-brass-400 rounded-full animate-spin" />
-                      <span className="text-gray-400 text-sm">Starting conversation...</span>
+
+                {selectedUser ? (
+                  <div>
+                    <div className="flex items-center gap-3 p-3 bg-white/[0.04] rounded-lg mb-3">
+                      <div className="w-8 h-8 rounded-full bg-gradient-to-br from-brass-500 to-wood-700 flex items-center justify-center text-xs font-bold text-white flex-shrink-0">
+                        {(selectedUser.full_name || '?').charAt(0).toUpperCase()}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm text-white truncate">{selectedUser.full_name}</p>
+                        <p className="text-xs text-gray-500">{selectedUser.role?.replace('_', ' ')}</p>
+                      </div>
+                      <button onClick={() => setSelectedUser(null)} className="text-gray-400 hover:text-white text-xs">Change</button>
                     </div>
-                  ) : users.length > 0 ? (
-                    users.map((u: any) => (
-                      <button key={u.id} onClick={() => startNewChat(u.id)}
-                        className="w-full text-left p-3 rounded-lg hover:bg-white/[0.06] transition-colors flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-brass-500 to-wood-700 flex items-center justify-center text-xs font-bold text-white flex-shrink-0">
-                          {(u.full_name || u.name || '?').charAt(0).toUpperCase()}
-                        </div>
-                        <div className="min-w-0">
-                          <p className="text-sm text-white truncate">{u.full_name || u.name}</p>
-                          <p className="text-xs text-gray-500">{u.role?.replace('_', ' ') || ''} {u.city ? `· ${u.city}` : ''}</p>
-                        </div>
-                      </button>
-                    ))
-                  ) : (
-                    <p className="text-gray-500 text-sm text-center py-4">No users found</p>
-                  )}
-                </div>
+                    <textarea
+                      value={newChatMsg}
+                      onChange={(e) => setNewChatMsg(e.target.value)}
+                      placeholder="Type your message..."
+                      rows={3}
+                      className="w-full bg-navy-950 border border-brass-400/10 rounded-lg px-4 py-2.5 text-gray-200 placeholder-gray-500 focus:outline-none focus:border-brass-400/30 text-sm mb-3 resize-none"
+                      onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); startNewChat(selectedUser.id, newChatMsg); } }}
+                      autoFocus
+                    />
+                    <button
+                      onClick={() => startNewChat(selectedUser.id, newChatMsg)}
+                      disabled={sending || !newChatMsg.trim()}
+                      className="w-full py-2.5 bg-brass-400/20 text-brass-300 rounded-lg hover:bg-brass-400/30 transition-colors disabled:opacity-50 text-sm font-medium"
+                    >
+                      {sending ? 'Sending...' : 'Send Message'}
+                    </button>
+                  </div>
+                ) : (
+                  <>
+                    <input value={userSearch} onChange={(e) => setUserSearch(e.target.value)} placeholder="Search users..."
+                      className="w-full bg-navy-950 border border-brass-400/10 rounded-lg px-4 py-2.5 text-gray-200 placeholder-gray-500 focus:outline-none mb-3 text-sm" />
+                    <div className="max-h-60 overflow-y-auto space-y-1">
+                      {users.length > 0 ? (
+                        users.map((u: any) => (
+                          <button key={u.id} onClick={() => setSelectedUser(u)}
+                            className="w-full text-left p-3 rounded-lg hover:bg-white/[0.06] transition-colors flex items-center gap-3">
+                            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-brass-500 to-wood-700 flex items-center justify-center text-xs font-bold text-white flex-shrink-0">
+                              {(u.full_name || u.name || '?').charAt(0).toUpperCase()}
+                            </div>
+                            <div className="min-w-0">
+                              <p className="text-sm text-white truncate">{u.full_name || u.name}</p>
+                              <p className="text-xs text-gray-500">{u.role?.replace('_', ' ') || ''} {u.city ? `· ${u.city}` : ''}</p>
+                            </div>
+                          </button>
+                        ))
+                      ) : (
+                        <p className="text-gray-500 text-sm text-center py-4">No users found</p>
+                      )}
+                    </div>
+                  </>
+                )}
               </div>
             </div>
           )}

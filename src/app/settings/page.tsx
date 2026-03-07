@@ -1,9 +1,9 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Navbar from '@/components/Navbar';
-import { getCurrentUser, isLoggedIn, logout, updateProfile, changePassword } from '@/lib/api';
+import { getCurrentUser, isLoggedIn, logout, updateProfile, changePassword, uploadAvatar } from '@/lib/api';
 import { useBookmarks } from '@/components/Bookmarks';
 
 const LANGUAGES = [
@@ -16,6 +16,12 @@ const THEMES = [
   { value: 'dark', label: 'Dark (Default)' },
   { value: 'light', label: 'Light (Coming Soon)', disabled: true },
 ];
+
+const ROLE_LABELS: Record<string, string> = {
+  lawyer: 'Advocate', judge: 'Honorable Judge', paralegal: 'Legal Professional',
+  law_student: 'Law Student', client: 'Litigant', admin: 'Administrator',
+  support: 'Support Staff',
+};
 
 export default function SettingsPage() {
   const router = useRouter();
@@ -30,8 +36,14 @@ export default function SettingsPage() {
   const [profilePhone, setProfilePhone] = useState('');
   const [profileCity, setProfileCity] = useState('');
   const [profileSpec, setProfileSpec] = useState('');
+  const [profileBarNumber, setProfileBarNumber] = useState('');
+  const [profileBio, setProfileBio] = useState('');
   const [profileSaving, setProfileSaving] = useState(false);
   const [profileMsg, setProfileMsg] = useState('');
+
+  // Avatar
+  const avatarInputRef = useRef<HTMLInputElement>(null);
+  const [avatarUploading, setAvatarUploading] = useState(false);
 
   // Password change
   const [currentPwd, setCurrentPwd] = useState('');
@@ -52,6 +64,8 @@ export default function SettingsPage() {
       setProfilePhone(u.phone || '');
       setProfileCity(u.city || '');
       setProfileSpec(u.specialization || '');
+      setProfileBarNumber(u.bar_number || '');
+      setProfileBio(u.bio || '');
     }
     const settings = localStorage.getItem('tvl_settings');
     if (settings) {
@@ -77,6 +91,8 @@ export default function SettingsPage() {
         phone: profilePhone || null,
         city: profileCity || null,
         specialization: profileSpec || null,
+        bar_number: profileBarNumber || null,
+        bio: profileBio || null,
       });
       setUser(updated);
       setProfileMsg('Profile updated!');
@@ -85,6 +101,27 @@ export default function SettingsPage() {
       setProfileMsg(err.message || 'Update failed');
     } finally {
       setProfileSaving(false);
+    }
+  };
+
+  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    e.target.value = '';
+    if (file.size > 5 * 1024 * 1024) {
+      setProfileMsg('Image too large. Max 5MB');
+      return;
+    }
+    setAvatarUploading(true);
+    try {
+      const updated = await uploadAvatar(file);
+      setUser(updated);
+      setProfileMsg('Profile picture updated!');
+      setTimeout(() => setProfileMsg(''), 2000);
+    } catch (err: any) {
+      setProfileMsg(err.message || 'Upload failed');
+    } finally {
+      setAvatarUploading(false);
     }
   };
 
@@ -112,6 +149,11 @@ export default function SettingsPage() {
 
   if (!user) return null;
 
+  const role = user.role || 'client';
+  const isLawyer = role === 'lawyer' || role === 'paralegal';
+  const isJudge = role === 'judge';
+  const isStudent = role === 'law_student';
+
   return (
     <div className="min-h-screen bg-navy-950 noise">
       <Navbar />
@@ -120,9 +162,43 @@ export default function SettingsPage() {
         <p className="text-gray-400 mb-8 text-sm">Manage your profile, preferences, and account</p>
 
         <div className="space-y-6">
-          {/* Profile */}
+          {/* Profile Card */}
           <div className="court-panel p-6">
-            <h2 className="text-lg font-display font-semibold text-white mb-4">Profile</h2>
+            <h2 className="text-lg font-display font-semibold text-white mb-6">Profile</h2>
+
+            {/* Avatar + Name Section */}
+            <div className="flex items-start gap-6 mb-6">
+              <div className="relative group">
+                <div className="w-20 h-20 rounded-full overflow-hidden border-2 border-brass-400/30 bg-gradient-to-br from-brass-500 to-wood-700 flex items-center justify-center">
+                  {user.profile_picture ? (
+                    <img src={user.profile_picture} alt="Profile" className="w-full h-full object-cover" />
+                  ) : (
+                    <span className="text-2xl font-bold text-white">{user.full_name?.charAt(0)?.toUpperCase() || 'U'}</span>
+                  )}
+                </div>
+                <button
+                  onClick={() => avatarInputRef.current?.click()}
+                  disabled={avatarUploading}
+                  className="absolute inset-0 rounded-full bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+                >
+                  {avatarUploading ? (
+                    <div className="w-5 h-5 border-2 border-white/40 border-t-white rounded-full animate-spin" />
+                  ) : (
+                    <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M6.827 6.175A2.31 2.31 0 015.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 00-1.134-.175 2.31 2.31 0 01-1.64-1.055l-.822-1.316a2.192 2.192 0 00-1.736-1.039 48.774 48.774 0 00-5.232 0 2.192 2.192 0 00-1.736 1.039l-.821 1.316z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16.5 12.75a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0z" /></svg>
+                  )}
+                </button>
+                <input ref={avatarInputRef} type="file" className="hidden" accept="image/*" onChange={handleAvatarUpload} />
+              </div>
+              <div className="flex-1">
+                <h3 className="text-white font-medium text-lg">{user.full_name}</h3>
+                <p className="text-brass-400/60 text-sm">{ROLE_LABELS[role] || role}</p>
+                <p className="text-gray-500 text-xs mt-1">{user.email}</p>
+                {user.plan && user.plan !== 'free' && (
+                  <span className="inline-block mt-2 text-[10px] bg-brass-400/20 text-brass-300 px-2 py-0.5 rounded-full uppercase tracking-wider">{user.plan} Plan</span>
+                )}
+              </div>
+            </div>
+
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-brass-400/60 mb-1">Full Name</label>
@@ -138,10 +214,43 @@ export default function SettingsPage() {
                   <input className="input-field !py-2.5 w-full" value={profileCity} onChange={e => setProfileCity(e.target.value)} placeholder="City" />
                 </div>
               </div>
-              <div>
-                <label className="block text-sm font-medium text-brass-400/60 mb-1">Specialization</label>
-                <input className="input-field !py-2.5 w-full sm:max-w-sm" value={profileSpec} onChange={e => setProfileSpec(e.target.value)} placeholder="e.g., Criminal Law, Family Law" />
-              </div>
+
+              {/* Role-specific fields */}
+              {(isLawyer || isJudge) && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-brass-400/60 mb-1">
+                      {isJudge ? 'Court / Bench' : 'Specialization'}
+                    </label>
+                    <input className="input-field !py-2.5 w-full" value={profileSpec} onChange={e => setProfileSpec(e.target.value)}
+                      placeholder={isJudge ? 'e.g., Lahore High Court' : 'e.g., Criminal Law, Family Law'} />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-brass-400/60 mb-1">
+                      {isJudge ? 'Bench Number' : 'Bar Number'}
+                    </label>
+                    <input className="input-field !py-2.5 w-full" value={profileBarNumber} onChange={e => setProfileBarNumber(e.target.value)}
+                      placeholder={isJudge ? 'Bench/Court ID' : 'Bar license number'} />
+                  </div>
+                </div>
+              )}
+
+              {isStudent && (
+                <div>
+                  <label className="block text-sm font-medium text-brass-400/60 mb-1">University / Institution</label>
+                  <input className="input-field !py-2.5 w-full sm:max-w-sm" value={profileSpec} onChange={e => setProfileSpec(e.target.value)}
+                    placeholder="e.g., University of Punjab Law College" />
+                </div>
+              )}
+
+              {!isStudent && (
+                <div>
+                  <label className="block text-sm font-medium text-brass-400/60 mb-1">Bio</label>
+                  <textarea className="input-field !py-2.5 w-full resize-none" rows={3} value={profileBio} onChange={e => setProfileBio(e.target.value)}
+                    placeholder={isLawyer ? 'Brief description of your practice and experience...' : isJudge ? 'Professional background...' : 'Tell us about yourself...'} />
+                </div>
+              )}
+
               <div className="flex items-center gap-3">
                 <button onClick={saveProfile} disabled={profileSaving} className="btn-primary !py-2.5 text-sm">
                   {profileSaving ? 'Saving...' : 'Save Profile'}
@@ -246,7 +355,11 @@ export default function SettingsPage() {
               </div>
               <div className="flex items-center gap-3 p-3 bg-white/[0.02] rounded-xl border border-brass-400/5">
                 <span className="text-brass-400/50 min-w-[80px] text-xs uppercase tracking-wider">Role</span>
-                <span className="text-gray-200 capitalize">{user.role?.replace(/_/g, ' ')}</span>
+                <span className="text-gray-200">{ROLE_LABELS[role] || role}</span>
+              </div>
+              <div className="flex items-center gap-3 p-3 bg-white/[0.02] rounded-xl border border-brass-400/5">
+                <span className="text-brass-400/50 min-w-[80px] text-xs uppercase tracking-wider">Plan</span>
+                <span className="text-gray-200 capitalize">{user.plan || 'Free'}</span>
               </div>
             </div>
             <button onClick={handleLogout} className="mt-6 text-sm text-red-400 hover:text-red-300 transition-colors">

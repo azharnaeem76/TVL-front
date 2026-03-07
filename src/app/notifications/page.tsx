@@ -33,8 +33,11 @@ export default function NotificationsPage() {
     if (!mounted || !isLoggedIn()) return;
     setLoading(true);
     getNotifications({ limit: 50 })
-      .then(data => setNotifications(data.items || data.notifications || data))
-      .catch(() => {})
+      .then(data => {
+        const items = Array.isArray(data) ? data : (data.items || data.notifications || []);
+        setNotifications(items);
+      })
+      .catch((err) => console.error('[Notifications] Failed to fetch:', err))
       .finally(() => setLoading(false));
   }, [mounted]);
 

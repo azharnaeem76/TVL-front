@@ -271,6 +271,24 @@ export async function updateProfile(data: Record<string, any>) {
   return result;
 }
 
+export async function uploadAvatar(file: File) {
+  const token = getToken();
+  const formData = new FormData();
+  formData.append('file', file);
+  const res = await fetch(`${API_BASE}/auth/me/avatar`, {
+    method: 'POST',
+    headers: { 'Authorization': `Bearer ${token}` },
+    body: formData,
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ detail: 'Upload failed' }));
+    throw new Error(err.detail || 'Upload failed');
+  }
+  const result = await res.json();
+  localStorage.setItem('tvl_user', JSON.stringify(result));
+  return result;
+}
+
 export async function changePassword(currentPassword: string, newPassword: string) {
   return request('/auth/change-password', {
     method: 'PUT',
@@ -494,6 +512,14 @@ export async function getUnreadMessageCount(): Promise<{ unread_count: number }>
   return request('/messaging/unread-count');
 }
 
+export async function deleteConversation(conversationId: number) {
+  return request(`/messaging/conversations/${conversationId}`, { method: 'DELETE' });
+}
+
+export async function deleteMessage(messageId: number, forEveryone: boolean = false) {
+  return request(`/messaging/messages/${messageId}?for_everyone=${forEveryone}`, { method: 'DELETE' });
+}
+
 // ─── Consultations ───────────────────────────────────────────────────────────
 
 export async function getConsultations(status?: string) {
@@ -598,4 +624,40 @@ export async function getSupportCategories() {
 
 export async function switchSupportRole(role: string) {
   return request(`/support/switch-role?role=${role}`, { method: 'POST' });
+}
+
+// ─── Community Forum ──────────────────────────────────────────────────────────
+
+export async function getForumPosts(params?: { category?: string; search?: string; skip?: number; limit?: number }) {
+  const query = new URLSearchParams();
+  if (params) Object.entries(params).forEach(([k, v]) => { if (v !== undefined) query.set(k, String(v)); });
+  return request(`/forum/posts?${query}`);
+}
+
+export async function createForumPost(data: { title: string; content: string; category: string }) {
+  return request('/forum/posts', { method: 'POST', body: JSON.stringify(data) });
+}
+
+export async function deleteForumPost(postId: number) {
+  return request(`/forum/posts/${postId}`, { method: 'DELETE' });
+}
+
+export async function getForumReplies(postId: number) {
+  return request(`/forum/posts/${postId}/replies`);
+}
+
+export async function createForumReply(postId: number, content: string) {
+  return request(`/forum/posts/${postId}/replies`, { method: 'POST', body: JSON.stringify({ content }) });
+}
+
+export async function deleteForumReply(replyId: number) {
+  return request(`/forum/replies/${replyId}`, { method: 'DELETE' });
+}
+
+export async function toggleForumPostLike(postId: number) {
+  return request(`/forum/posts/${postId}/like`, { method: 'POST' });
+}
+
+export async function toggleForumReplyLike(replyId: number) {
+  return request(`/forum/replies/${replyId}/like`, { method: 'POST' });
 }

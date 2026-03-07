@@ -66,9 +66,10 @@ export default function NotificationBell() {
     const fetchNotifications = async () => {
       try {
         const data = await getNotifications({ limit: 10 });
-        setNotifications(data.items || data.notifications || data);
-      } catch {
-        // ignore
+        const items = Array.isArray(data) ? data : (data.items || data.notifications || []);
+        setNotifications(items);
+      } catch (err) {
+        console.error('[NotificationBell] Failed to fetch notifications:', err);
       }
     };
     fetchNotifications();
