@@ -51,7 +51,7 @@ export default function CaseTrackerPage() {
     setLoading(true);
     try {
       const data = await getTrackedCases({ status: statusFilter || undefined, search: search || undefined });
-      setCases(data.items || data);
+      setCases(Array.isArray(data) ? data : data.items || []);
     } catch {
       // silently fail
     } finally {

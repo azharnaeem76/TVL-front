@@ -1,13 +1,21 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Navbar from '@/components/Navbar';
 import Logo from '@/components/Logo';
 import { forgotPassword, resetPassword } from '@/lib/api';
 import FloatingSymbols from '@/components/FloatingSymbols';
 
-export default function ResetPasswordPage() {
+export default function ResetPasswordWrapper() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-navy-950" />}>
+      <ResetPasswordPage />
+    </Suspense>
+  );
+}
+
+function ResetPasswordPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const token = searchParams.get('token');

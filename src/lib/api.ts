@@ -457,6 +457,11 @@ export async function getConversations() {
   return request('/messaging/conversations');
 }
 
+export async function getMessagingContacts(search?: string) {
+  const query = search ? `?search=${encodeURIComponent(search)}` : '';
+  return request(`/messaging/contacts${query}`);
+}
+
 export async function sendDirectMessage(recipient_id: number, content: string) {
   return request('/messaging/send', { method: 'POST', body: JSON.stringify({ recipient_id, content }) });
 }

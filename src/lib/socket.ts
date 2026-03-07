@@ -10,13 +10,7 @@ let listenerCount = 0;
 
 function getToken(): string | null {
   if (typeof window === 'undefined') return null;
-  const stored = localStorage.getItem('tvl_user');
-  if (!stored) return null;
-  try {
-    return JSON.parse(stored).token || null;
-  } catch {
-    return null;
-  }
+  return localStorage.getItem('tvl_token');
 }
 
 function getOrCreateSocket(): Socket | null {

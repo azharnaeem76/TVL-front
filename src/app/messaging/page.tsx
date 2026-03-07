@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import Navbar from '@/components/Navbar';
 import { useToast } from '@/components/Toast';
-import { getCurrentUser, getConversations, getConversationMessages, sendDirectMessage, sendFileMessage, getLawyerDirectory } from '@/lib/api';
+import { getCurrentUser, getConversations, getConversationMessages, sendDirectMessage, sendFileMessage, getMessagingContacts } from '@/lib/api';
 import { useSocket } from '@/lib/socket';
 
 const EMOJI_LIST = [
@@ -111,9 +111,8 @@ export default function MessagingPage() {
 
   const searchUsers = async () => {
     try {
-      const data = await getLawyerDirectory({ search: userSearch });
-      const items = Array.isArray(data) ? data : data.items || [];
-      setUsers(currentUser ? items.filter((u: any) => u.id !== currentUser.id) : items);
+      const data = await getMessagingContacts(userSearch);
+      setUsers(Array.isArray(data) ? data : []);
     } catch { setUsers([]); }
   };
 
@@ -222,7 +221,7 @@ export default function MessagingPage() {
 
   // ─── Message Renderer ──────────────────────────────────────────
   const renderMessage = (msg: any) => {
-    const isMe = msg.sender_id !== activeConv?.other_user?.id;
+    const isMe = msg.sender_id === currentUser?.id;
     const type = msg.message_type || 'text';
 
     return (
