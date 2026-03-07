@@ -3,8 +3,15 @@
 import { useState, useEffect, useRef } from 'react';
 import Navbar from '@/components/Navbar';
 import { useToast } from '@/components/Toast';
-import { getConversations, getConversationMessages, sendDirectMessage, getLawyerDirectory } from '@/lib/api';
+import { getCurrentUser, getConversations, getConversationMessages, sendDirectMessage, sendFileMessage, getLawyerDirectory } from '@/lib/api';
 import { useSocket } from '@/lib/socket';
+
+const EMOJI_LIST = [
+  '😀','😂','😊','😍','🥰','😎','🤔','😅','😢','😡',
+  '👍','👎','👏','🙏','💪','🤝','❤️','🔥','⭐','✅',
+  '📄','📎','⚖️','🏛️','📚','🔍','💼','📝','🗂️','📋',
+  '✨','💡','⚠️','🚫','🎯','🏆','📞','💬','📧','🔔',
+];
 
 export default function MessagingPage() {
   const [conversations, setConversations] = useState<any[]>([]);
@@ -16,53 +23,54 @@ export default function MessagingPage() {
   const [showNewChat, setShowNewChat] = useState(false);
   const [users, setUsers] = useState<any[]>([]);
   const [userSearch, setUserSearch] = useState('');
+  const [showEmoji, setShowEmoji] = useState(false);
+  const [recording, setRecording] = useState(false);
+  const [recordingTime, setRecordingTime] = useState(0);
+  const [previewFile, setPreviewFile] = useState<any>(null);
   const msgEndRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const audioChunksRef = useRef<Blob[]>([]);
+  const recordTimerRef = useRef<NodeJS.Timeout | null>(null);
   const { showToast } = useToast();
   const { on, emit, connected } = useSocket();
+  const currentUser = getCurrentUser();
 
   useEffect(() => { loadConversations(); }, []);
   useEffect(() => { msgEndRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [messages]);
 
-  // Join/leave conversation rooms for real-time messages
   useEffect(() => {
     if (!activeConv || !connected) return;
     emit('join_conversation', { conversation_id: activeConv.id });
     return () => { emit('leave_conversation', { conversation_id: activeConv.id }); };
   }, [activeConv, connected, emit]);
 
-  // Listen for incoming real-time messages
   useEffect(() => {
     if (!connected) return;
-
     const unsub1 = on('new_message', (msg: any) => {
-      // Only add if we're viewing this conversation and it's not our own message
       setMessages(prev => {
         if (prev.some(m => m.id === msg.id)) return prev;
         return [...prev, msg];
       });
     });
-
-    const unsub2 = on('unread_update', () => {
-      // Refresh conversation list to update unread counts
-      loadConversations();
-    });
-
+    const unsub2 = on('unread_update', () => { loadConversations(); });
     return () => { unsub1(); unsub2(); };
   }, [connected, on]);
 
   const loadConversations = async () => {
     try {
       const data = await getConversations();
-      setConversations(data);
+      setConversations(Array.isArray(data) ? data : []);
     } catch (err) { console.error(err); }
     setLoading(false);
   };
 
   const openConversation = async (conv: any) => {
     setActiveConv(conv);
+    setShowEmoji(false);
     try {
       const msgs = await getConversationMessages(conv.id);
-      setMessages(msgs);
+      setMessages(Array.isArray(msgs) ? msgs : []);
     } catch (err) { console.error(err); }
   };
 
@@ -73,6 +81,7 @@ export default function MessagingPage() {
       const msg = await sendDirectMessage(activeConv.other_user.id, newMsg);
       setMessages(prev => [...prev, msg]);
       setNewMsg('');
+      setShowEmoji(false);
       loadConversations();
     } catch (err: any) {
       showToast(err.message || 'Send failed', 'error');
@@ -81,13 +90,18 @@ export default function MessagingPage() {
   };
 
   const startNewChat = async (userId: number) => {
+    if (userId === currentUser?.id) {
+      showToast('Cannot message yourself', 'error');
+      return;
+    }
     setSending(true);
     try {
       const msg = await sendDirectMessage(userId, 'Hello! I would like to connect with you.');
       setShowNewChat(false);
+      setUserSearch('');
       await loadConversations();
       const convs = await getConversations();
-      const conv = convs.find((c: any) => c.id === msg.conversation_id);
+      const conv = (Array.isArray(convs) ? convs : []).find((c: any) => c.id === msg.conversation_id);
       if (conv) openConversation(conv);
     } catch (err: any) {
       showToast(err.message || 'Failed to start chat', 'error');
@@ -98,11 +112,176 @@ export default function MessagingPage() {
   const searchUsers = async () => {
     try {
       const data = await getLawyerDirectory({ search: userSearch });
-      setUsers(Array.isArray(data) ? data : data.items || []);
+      const items = Array.isArray(data) ? data : data.items || [];
+      setUsers(currentUser ? items.filter((u: any) => u.id !== currentUser.id) : items);
     } catch { setUsers([]); }
   };
 
   useEffect(() => { if (showNewChat) searchUsers(); }, [showNewChat, userSearch]);
+
+  // ─── File Upload ────────────────────────────────────────────────
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !activeConv) return;
+    e.target.value = '';
+
+    let msgType = 'file';
+    if (file.type.startsWith('image/')) msgType = 'image';
+    else if (file.type.startsWith('video/')) msgType = 'video';
+
+    if (file.size > 25 * 1024 * 1024) {
+      showToast('File too large. Max 25MB', 'error');
+      return;
+    }
+
+    setSending(true);
+    try {
+      const msg = await sendFileMessage(activeConv.other_user.id, file, msgType);
+      setMessages(prev => [...prev, msg]);
+      loadConversations();
+    } catch (err: any) {
+      showToast(err.message || 'Upload failed', 'error');
+    }
+    setSending(false);
+  };
+
+  // ─── Voice Recording ───────────────────────────────────────────
+  const startRecording = async () => {
+    if (!activeConv) return;
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const mediaRecorder = new MediaRecorder(stream, { mimeType: MediaRecorder.isTypeSupported('audio/webm') ? 'audio/webm' : 'audio/mp4' });
+      mediaRecorderRef.current = mediaRecorder;
+      audioChunksRef.current = [];
+      setRecordingTime(0);
+
+      mediaRecorder.ondataavailable = (e) => {
+        if (e.data.size > 0) audioChunksRef.current.push(e.data);
+      };
+
+      mediaRecorder.onstop = async () => {
+        stream.getTracks().forEach(t => t.stop());
+        const mimeType = mediaRecorder.mimeType;
+        const ext = mimeType.includes('webm') ? 'webm' : 'mp4';
+        const blob = new Blob(audioChunksRef.current, { type: mimeType });
+        const file = new File([blob], `voice-message.${ext}`, { type: mimeType });
+        const duration = recordingTime;
+
+        setSending(true);
+        try {
+          const msg = await sendFileMessage(activeConv.other_user.id, file, 'voice', duration);
+          setMessages(prev => [...prev, msg]);
+          loadConversations();
+        } catch (err: any) {
+          showToast(err.message || 'Failed to send voice message', 'error');
+        }
+        setSending(false);
+      };
+
+      mediaRecorder.start(250);
+      setRecording(true);
+
+      recordTimerRef.current = setInterval(() => {
+        setRecordingTime(prev => prev + 1);
+      }, 1000);
+    } catch {
+      showToast('Microphone access denied', 'error');
+    }
+  };
+
+  const stopRecording = () => {
+    if (mediaRecorderRef.current && recording) {
+      mediaRecorderRef.current.stop();
+      setRecording(false);
+      if (recordTimerRef.current) {
+        clearInterval(recordTimerRef.current);
+        recordTimerRef.current = null;
+      }
+    }
+  };
+
+  const cancelRecording = () => {
+    if (mediaRecorderRef.current && recording) {
+      mediaRecorderRef.current.stream.getTracks().forEach(t => t.stop());
+      mediaRecorderRef.current = null;
+      audioChunksRef.current = [];
+      setRecording(false);
+      setRecordingTime(0);
+      if (recordTimerRef.current) {
+        clearInterval(recordTimerRef.current);
+        recordTimerRef.current = null;
+      }
+    }
+  };
+
+  const formatDuration = (secs: number) => {
+    const m = Math.floor(secs / 60);
+    const s = secs % 60;
+    return `${m}:${String(s).padStart(2, '0')}`;
+  };
+
+  // ─── Message Renderer ──────────────────────────────────────────
+  const renderMessage = (msg: any) => {
+    const isMe = msg.sender_id !== activeConv?.other_user?.id;
+    const type = msg.message_type || 'text';
+
+    return (
+      <div key={msg.id} className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
+        <div className={`max-w-[70%] rounded-xl text-sm overflow-hidden ${
+          isMe ? 'bg-brass-400/20 text-brass-200' : 'bg-white/[0.06] text-gray-300'
+        }`}>
+          {type === 'text' && (
+            <div className="p-3">
+              <p className="whitespace-pre-wrap">{msg.content}</p>
+            </div>
+          )}
+
+          {type === 'image' && (
+            <div>
+              <img
+                src={msg.file_url}
+                alt={msg.file_name || 'Image'}
+                className="max-w-full max-h-64 rounded-t-xl cursor-pointer object-cover"
+                onClick={() => setPreviewFile(msg)}
+              />
+              {msg.content && <p className="p-2 text-xs">{msg.content}</p>}
+            </div>
+          )}
+
+          {type === 'video' && (
+            <div>
+              <video
+                src={msg.file_url}
+                controls
+                className="max-w-full max-h-64 rounded-t-xl"
+                preload="metadata"
+              />
+              {msg.content && <p className="p-2 text-xs">{msg.content}</p>}
+            </div>
+          )}
+
+          {type === 'voice' && (
+            <div className="p-3 flex items-center gap-3">
+              <audio src={msg.file_url} controls className="h-8 max-w-[200px]" preload="metadata" />
+              {msg.duration && <span className="text-[10px] text-gray-500">{formatDuration(msg.duration)}</span>}
+            </div>
+          )}
+
+          {type === 'file' && (
+            <a href={msg.file_url} target="_blank" rel="noopener noreferrer" className="p-3 flex items-center gap-2 hover:bg-white/[0.04]">
+              <svg className="w-5 h-5 flex-shrink-0 text-brass-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m.75 12l3 3m0 0l3-3m-3 3v-6m-1.5-9H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" /></svg>
+              <div className="min-w-0">
+                <p className="truncate text-xs font-medium">{msg.file_name || 'File'}</p>
+                {msg.file_size && <p className="text-[10px] text-gray-500">{(msg.file_size / 1024).toFixed(0)} KB</p>}
+              </div>
+            </a>
+          )}
+
+          <p className="text-[10px] text-gray-500 px-3 pb-2">{new Date(msg.created_at).toLocaleTimeString()}</p>
+        </div>
+      </div>
+    );
+  };
 
   return (
     <>
@@ -115,7 +294,7 @@ export default function MessagingPage() {
               <p className="text-gray-400 mt-1">Secure internal messaging</p>
             </div>
             <button onClick={() => setShowNewChat(true)} className="px-4 py-2 bg-brass-400/20 text-brass-300 rounded-lg hover:bg-brass-400/30 transition-colors text-sm">
-              New Message
+              ✨ New Message
             </button>
           </div>
 
@@ -125,7 +304,10 @@ export default function MessagingPage() {
               {loading ? (
                 <div className="p-6 text-center text-gray-500">Loading...</div>
               ) : conversations.length === 0 ? (
-                <div className="p-6 text-center text-gray-500">No conversations yet</div>
+                <div className="p-6 text-center text-gray-500">
+                  <p>No conversations yet</p>
+                  <button onClick={() => setShowNewChat(true)} className="text-brass-400 text-sm mt-2 hover:text-brass-300">Start a chat</button>
+                </div>
               ) : (
                 conversations.map(conv => (
                   <button key={conv.id} onClick={() => openConversation(conv)}
@@ -148,57 +330,134 @@ export default function MessagingPage() {
             {/* Messages area */}
             <div className="flex-1 bg-white/[0.03] border border-brass-400/10 rounded-xl flex flex-col">
               {!activeConv ? (
-                <div className="flex-1 flex items-center justify-center text-gray-500">Select a conversation or start a new one</div>
+                <div className="flex-1 flex flex-col items-center justify-center text-gray-500 gap-3">
+                  <svg className="w-12 h-12 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M8.625 12a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H8.25m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H12m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 01-2.555-.337A5.972 5.972 0 015.41 20.97a5.969 5.969 0 01-.474-.065 4.48 4.48 0 00.978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25z" /></svg>
+                  <p>Select a conversation or start a new one</p>
+                </div>
               ) : (
                 <>
-                  <div className="p-4 border-b border-white/[0.06]">
-                    <p className="text-white font-medium">{activeConv.other_user?.name}</p>
-                    <p className="text-xs text-gray-500 capitalize">{activeConv.other_user?.role}</p>
+                  <div className="p-4 border-b border-white/[0.06] flex items-center justify-between">
+                    <div>
+                      <p className="text-white font-medium">{activeConv.other_user?.name}</p>
+                      <p className="text-xs text-gray-500 capitalize">{activeConv.other_user?.role}</p>
+                    </div>
                   </div>
                   <div className="flex-1 overflow-y-auto p-4 space-y-3">
-                    {messages.map(msg => (
-                      <div key={msg.id} className={`flex ${msg.sender_id === activeConv.other_user?.id ? 'justify-start' : 'justify-end'}`}>
-                        <div className={`max-w-[70%] p-3 rounded-xl text-sm ${msg.sender_id === activeConv.other_user?.id ? 'bg-white/[0.06] text-gray-300' : 'bg-brass-400/20 text-brass-200'}`}>
-                          <p>{msg.content}</p>
-                          <p className="text-[10px] text-gray-500 mt-1">{new Date(msg.created_at).toLocaleTimeString()}</p>
-                        </div>
-                      </div>
-                    ))}
+                    {messages.map(renderMessage)}
                     <div ref={msgEndRef} />
                   </div>
-                  <div className="p-4 border-t border-white/[0.06] flex gap-2">
-                    <input value={newMsg} onChange={(e) => setNewMsg(e.target.value)}
-                      onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && handleSend()}
-                      placeholder="Type a message..." className="flex-1 bg-navy-900/50 border border-brass-400/10 rounded-lg px-4 py-2.5 text-gray-200 placeholder-gray-500 focus:outline-none focus:border-brass-400/30 text-sm" />
-                    <button onClick={handleSend} disabled={sending || !newMsg.trim()}
-                      className="px-4 py-2.5 bg-brass-400/20 text-brass-300 rounded-lg hover:bg-brass-400/30 transition-colors disabled:opacity-50">
-                      Send
-                    </button>
+
+                  {/* Input bar */}
+                  <div className="p-4 border-t border-white/[0.06]">
+                    {/* Emoji picker */}
+                    {showEmoji && (
+                      <div className="mb-2 p-2 bg-navy-900/80 border border-brass-400/10 rounded-lg">
+                        <div className="flex flex-wrap gap-1">
+                          {EMOJI_LIST.map(e => (
+                            <button key={e} onClick={() => { setNewMsg(prev => prev + e); setShowEmoji(false); }}
+                              className="w-8 h-8 flex items-center justify-center text-lg hover:bg-white/[0.1] rounded transition-colors">
+                              {e}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {recording ? (
+                      <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-2 flex-1">
+                          <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse" />
+                          <span className="text-red-400 text-sm font-medium">Recording {formatDuration(recordingTime)}</span>
+                          <div className="voice-bars ml-2">
+                            <span /><span /><span /><span /><span />
+                          </div>
+                        </div>
+                        <button onClick={cancelRecording} className="p-2 text-gray-400 hover:text-red-400 transition-colors" title="Cancel">
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                        </button>
+                        <button onClick={stopRecording} className="px-4 py-2 bg-green-500/20 text-green-400 rounded-lg hover:bg-green-500/30 transition-colors text-sm">
+                          ✅ Send
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="flex gap-2 items-end">
+                        {/* Emoji button */}
+                        <button onClick={() => setShowEmoji(!showEmoji)} className="p-2 text-gray-400 hover:text-brass-300 transition-colors" title="Emoji">
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15.182 15.182a4.5 4.5 0 01-6.364 0M21 12a9 9 0 11-18 0 9 9 0 0118 0zM9.75 9.75c0 .414-.168.75-.375.75S9 10.164 9 9.75 9.168 9 9.375 9s.375.336.375.75zm-.375 0h.008v.015h-.008V9.75zm5.625 0c0 .414-.168.75-.375.75s-.375-.336-.375-.75.168-.75.375-.75.375.336.375.75zm-.375 0h.008v.015h-.008V9.75z" /></svg>
+                        </button>
+
+                        {/* File upload button */}
+                        <button onClick={() => fileInputRef.current?.click()} className="p-2 text-gray-400 hover:text-brass-300 transition-colors" title="Attach file">
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M18.375 12.739l-7.693 7.693a4.5 4.5 0 01-6.364-6.364l10.94-10.94A3 3 0 1119.5 7.372L8.552 18.32m.009-.01l-.01.01m5.699-9.941l-7.81 7.81a1.5 1.5 0 002.112 2.13" /></svg>
+                        </button>
+                        <input ref={fileInputRef} type="file" className="hidden" accept="image/*,video/*,.pdf,.doc,.docx,.txt" onChange={handleFileSelect} />
+
+                        {/* Voice record button */}
+                        <button onClick={startRecording} className="p-2 text-gray-400 hover:text-red-400 transition-colors" title="Voice message">
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 18.75a6 6 0 006-6v-1.5m-6 7.5a6 6 0 01-6-6v-1.5m6 7.5v3.75m-3.75 0h7.5M12 15.75a3 3 0 01-3-3V4.5a3 3 0 116 0v8.25a3 3 0 01-3 3z" /></svg>
+                        </button>
+
+                        {/* Text input */}
+                        <input value={newMsg} onChange={(e) => setNewMsg(e.target.value)}
+                          onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && handleSend()}
+                          placeholder="Type a message..."
+                          className="flex-1 bg-navy-900/50 border border-brass-400/10 rounded-lg px-4 py-2.5 text-gray-200 placeholder-gray-500 focus:outline-none focus:border-brass-400/30 text-sm" />
+
+                        {/* Send button */}
+                        <button onClick={handleSend} disabled={sending || !newMsg.trim()}
+                          className="px-4 py-2.5 bg-brass-400/20 text-brass-300 rounded-lg hover:bg-brass-400/30 transition-colors disabled:opacity-50 text-sm">
+                          Send
+                        </button>
+                      </div>
+                    )}
                   </div>
                 </>
               )}
             </div>
           </div>
 
+          {/* Image Preview Modal */}
+          {previewFile && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm" onClick={() => setPreviewFile(null)}>
+              <div className="max-w-4xl max-h-[90vh] p-4" onClick={e => e.stopPropagation()}>
+                <button onClick={() => setPreviewFile(null)} className="absolute top-4 right-4 text-white/60 hover:text-white text-2xl">&times;</button>
+                <img src={previewFile.file_url} alt={previewFile.file_name || 'Preview'} className="max-w-full max-h-[85vh] object-contain rounded-lg" />
+              </div>
+            </div>
+          )}
+
           {/* New Chat Modal */}
           {showNewChat && (
             <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
               <div className="bg-navy-900 border border-brass-400/20 rounded-xl p-6 w-full max-w-md">
                 <div className="flex justify-between items-center mb-4">
-                  <h2 className="text-lg font-semibold text-white">New Message</h2>
-                  <button onClick={() => setShowNewChat(false)} className="text-gray-400 hover:text-white">&times;</button>
+                  <h2 className="text-lg font-semibold text-white">✨ New Message</h2>
+                  <button onClick={() => { setShowNewChat(false); setUserSearch(''); }} className="text-gray-400 hover:text-white text-xl">&times;</button>
                 </div>
                 <input value={userSearch} onChange={(e) => setUserSearch(e.target.value)} placeholder="Search users..."
                   className="w-full bg-navy-950 border border-brass-400/10 rounded-lg px-4 py-2.5 text-gray-200 placeholder-gray-500 focus:outline-none mb-3 text-sm" />
                 <div className="max-h-60 overflow-y-auto space-y-1">
-                  {users.map((u: any) => (
-                    <button key={u.id} onClick={() => startNewChat(u.id)}
-                      className="w-full text-left p-3 rounded-lg hover:bg-white/[0.06] transition-colors">
-                      <p className="text-sm text-white">{u.full_name || u.name}</p>
-                      <p className="text-xs text-gray-500">{u.city || ''}</p>
-                    </button>
-                  ))}
-                  {users.length === 0 && <p className="text-gray-500 text-sm text-center py-4">No users found</p>}
+                  {sending ? (
+                    <div className="flex items-center justify-center py-8 gap-2">
+                      <div className="w-4 h-4 border-2 border-brass-400/40 border-t-brass-400 rounded-full animate-spin" />
+                      <span className="text-gray-400 text-sm">Starting conversation...</span>
+                    </div>
+                  ) : users.length > 0 ? (
+                    users.map((u: any) => (
+                      <button key={u.id} onClick={() => startNewChat(u.id)}
+                        className="w-full text-left p-3 rounded-lg hover:bg-white/[0.06] transition-colors flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-brass-500 to-wood-700 flex items-center justify-center text-xs font-bold text-white flex-shrink-0">
+                          {(u.full_name || u.name || '?').charAt(0).toUpperCase()}
+                        </div>
+                        <div className="min-w-0">
+                          <p className="text-sm text-white truncate">{u.full_name || u.name}</p>
+                          <p className="text-xs text-gray-500">{u.role?.replace('_', ' ') || ''} {u.city ? `· ${u.city}` : ''}</p>
+                        </div>
+                      </button>
+                    ))
+                  ) : (
+                    <p className="text-gray-500 text-sm text-center py-4">No users found</p>
+                  )}
                 </div>
               </div>
             </div>

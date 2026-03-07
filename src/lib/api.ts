@@ -465,6 +465,26 @@ export async function getConversationMessages(conversationId: number) {
   return request(`/messaging/conversations/${conversationId}/messages`);
 }
 
+export async function sendFileMessage(recipientId: number, file: File, messageType: string, duration?: number) {
+  const token = getToken();
+  const formData = new FormData();
+  formData.append('recipient_id', String(recipientId));
+  formData.append('file', file);
+  formData.append('message_type', messageType);
+  if (duration !== undefined) formData.append('duration', String(duration));
+
+  const res = await fetch(`${API_BASE}/messaging/send-file`, {
+    method: 'POST',
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+    body: formData,
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ detail: 'Upload failed' }));
+    throw new Error(err.detail || 'Upload failed');
+  }
+  return res.json();
+}
+
 export async function getUnreadMessageCount(): Promise<{ unread_count: number }> {
   return request('/messaging/unread-count');
 }

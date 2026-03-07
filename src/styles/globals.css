@@ -419,12 +419,13 @@ html.light .section-court {
   );
 }
 
-/* Light mode text color overrides using CSS variables */
+/* Light mode core */
 html.light {
   --tw-text-opacity: 1;
   color-scheme: light;
 }
 
+/* ---- Text colors ---- */
 html.light [class*="text-white"] { color: #1a1a2e !important; }
 html.light [class*="text-gray-1"] { color: #2d2d3f !important; }
 html.light [class*="text-gray-2"] { color: #3d3d52 !important; }
@@ -432,7 +433,116 @@ html.light [class*="text-gray-3"] { color: #4a4a5e !important; }
 html.light [class*="text-gray-4"] { color: #6b6b7f !important; }
 html.light [class*="text-gray-5"] { color: #8b8b9f !important; }
 html.light [class*="text-gray-6"] { color: #a0a0b0 !important; }
+html.light [class*="text-brass-2"] { color: #a35623 !important; }
+html.light [class*="text-brass-3"] { color: #c46a27 !important; }
+html.light [class*="text-brass-4"] { color: #c46a27 !important; }
 
+/* ---- Background overrides ---- */
+html.light [class*="bg-navy-950"] {
+  background-color: #f8f7f2 !important;
+}
+html.light [class*="bg-navy-900"] {
+  background-color: #ffffff !important;
+}
+html.light [class*="bg-navy-900\\/"] {
+  background-color: rgba(255, 255, 255, 0.8) !important;
+}
+
+/* Semi-transparent white backgrounds -> subtle gray */
+html.light [class*="bg-white\\/\\[0.0"] {
+  background-color: rgba(0, 0, 0, 0.025) !important;
+}
+html.light [class*="bg-white\\/\\[0.04\\]"] {
+  background-color: rgba(0, 0, 0, 0.03) !important;
+}
+html.light [class*="bg-white\\/\\[0.06\\]"] {
+  background-color: rgba(0, 0, 0, 0.04) !important;
+}
+html.light [class*="bg-white\\/\\[0.08\\]"] {
+  background-color: rgba(0, 0, 0, 0.05) !important;
+}
+
+/* Brass alpha backgrounds stay warm */
+html.light [class*="bg-brass-400\\/10"],
+html.light [class*="bg-brass-400\\/20"] {
+  background-color: rgba(222, 149, 38, 0.1) !important;
+}
+
+/* Status color backgrounds */
+html.light [class*="bg-green-500\\/"] {
+  background-color: rgba(16, 185, 129, 0.08) !important;
+}
+html.light [class*="bg-red-500\\/"] {
+  background-color: rgba(239, 68, 68, 0.08) !important;
+}
+html.light [class*="bg-blue-500\\/"] {
+  background-color: rgba(59, 130, 246, 0.08) !important;
+}
+html.light [class*="bg-yellow-500\\/"] {
+  background-color: rgba(234, 179, 8, 0.08) !important;
+}
+html.light [class*="bg-purple-500\\/"] {
+  background-color: rgba(168, 85, 247, 0.08) !important;
+}
+
+/* Black overlay for modals */
+html.light [class*="bg-black\\/60"] {
+  background-color: rgba(0, 0, 0, 0.3) !important;
+}
+
+/* ---- Border overrides ---- */
+html.light [class*="border-brass-400"] {
+  border-color: rgba(222, 149, 38, 0.15) !important;
+}
+html.light [class*="border-white\\/"] {
+  border-color: rgba(0, 0, 0, 0.08) !important;
+}
+html.light [class*="border-gold-400"] {
+  border-color: rgba(250, 195, 17, 0.2) !important;
+}
+
+/* ---- Form inputs in light mode ---- */
+html.light input[class*="bg-navy"],
+html.light textarea[class*="bg-navy"],
+html.light select[class*="bg-navy"] {
+  background-color: #f5f5f0 !important;
+  border-color: #d4d4cc !important;
+  color: #1a1a2e !important;
+}
+html.light input[class*="bg-navy"]:focus,
+html.light textarea[class*="bg-navy"]:focus,
+html.light select[class*="bg-navy"]:focus {
+  border-color: rgba(222, 149, 38, 0.4) !important;
+  background-color: #ffffff !important;
+}
+html.light input::placeholder,
+html.light textarea::placeholder {
+  color: #9ca3af !important;
+}
+
+/* ---- Sidebar ---- */
+html.light aside[class*="bg-navy-950"] {
+  background-color: rgba(255, 255, 255, 0.95) !important;
+  backdrop-filter: blur(20px);
+}
+html.light aside[class*="border-brass-400"] {
+  border-color: #e5e5dc !important;
+}
+
+/* ---- Navbar ---- */
+html.light nav[class*="bg-navy-950"] {
+  background-color: rgba(255, 255, 255, 0.9) !important;
+}
+
+/* ---- Gradient text in light mode ---- */
+html.light .text-gradient,
+html.light .text-gradient-gold {
+  background-image: linear-gradient(135deg, #a35623, #ca8301, #a35623) !important;
+  -webkit-background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+}
+
+/* ---- Scrollbar ---- */
 html.light ::-webkit-scrollbar-track {
   background: rgba(240, 240, 245, 0.8);
 }
@@ -443,20 +553,27 @@ html.light ::-webkit-scrollbar-thumb:hover {
   background: rgba(250, 195, 17, 0.35);
 }
 
+/* ---- Prose ---- */
 html.light .prose strong { color: #ca8301; }
 html.light .prose code { background-color: #f3f4f6; color: #a15d04; }
 
-html.light [class*="bg-navy-950"] {
-  background-color: #f8f7f2 !important;
+/* ---- Ring colors for active plan highlight etc ---- */
+html.light [class*="ring-green-400"] {
+  --tw-ring-color: rgba(16, 185, 129, 0.3) !important;
+}
+html.light [class*="ring-brass-400"] {
+  --tw-ring-color: rgba(222, 149, 38, 0.2) !important;
 }
 
-html.light [class*="border-brass-400"],
-html.light [class*="border-white"] {
-  border-color: rgba(0, 0, 0, 0.08) !important;
+/* ---- Shadow adjustments ---- */
+html.light [class*="shadow-lg"],
+html.light [class*="shadow-glow"] {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06) !important;
 }
 
-html.light [class*="bg-white\\/"] {
-  background-color: rgba(0, 0, 0, 0.03) !important;
+/* ---- User avatar gradient stays visible ---- */
+html.light [class*="from-brass-500"][class*="to-wood-700"] {
+  color: white !important;
 }
 
 /* ============================================
