@@ -98,7 +98,7 @@ export default function MessagingPage() {
   const searchUsers = async () => {
     try {
       const data = await getLawyerDirectory({ search: userSearch });
-      setUsers(data);
+      setUsers(Array.isArray(data) ? data : data.items || []);
     } catch { setUsers([]); }
   };
 
