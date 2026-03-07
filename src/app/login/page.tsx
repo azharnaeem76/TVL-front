@@ -128,7 +128,6 @@ export default function LoginPage() {
                       <option value="lawyer">Advocate</option>
                       <option value="law_student">Law Student</option>
                       <option value="paralegal">Legal Professional</option>
-                      <option value="judge">Judge</option>
                     </select>
                   </div>
                   <div className="grid grid-cols-2 gap-3">
@@ -158,6 +157,11 @@ export default function LoginPage() {
                 <label className="block text-xs font-medium text-brass-400/50 mb-1.5 uppercase tracking-wider">Password</label>
                 <input type="password" className="input-field !border-brass-400/10 focus:!border-brass-400/30"
                   value={form.password} onChange={(e) => update('password', e.target.value)} required />
+                {!isRegister && (
+                  <button type="button" onClick={() => router.push('/reset-password')} className="text-xs text-brass-400/60 hover:text-brass-400 transition-colors mt-1">
+                    Forgot password?
+                  </button>
+                )}
               </div>
 
               <button type="submit" className="btn-gavel w-full !py-3.5" disabled={loading}>

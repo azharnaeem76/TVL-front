@@ -17,6 +17,9 @@ async function request(path: string, options: RequestInit = {}) {
 
   const res = await fetch(`${API_BASE}${path}`, { ...options, headers });
   if (!res.ok) {
+    if (res.status === 401 && typeof window !== 'undefined' && !path.startsWith('/auth/')) {
+      throw new Error('Session expired');
+    }
     const error = await res.json().catch(() => ({ detail: 'Request failed' }));
     throw new Error(error.detail || 'Request failed');
   }
@@ -232,6 +235,10 @@ export async function adminGetUsers(params?: {
   return request(`/admin/users?${query}`);
 }
 
+export async function adminCreateUser(data: Record<string, any>) {
+  return request('/admin/users', { method: 'POST', body: JSON.stringify(data) });
+}
+
 export async function adminUpdateUser(id: number, data: Record<string, any>) {
   return request(`/admin/users/${id}`, { method: 'PUT', body: JSON.stringify(data) });
 }
@@ -255,6 +262,70 @@ export async function adminBulkDeleteCaseLaws(ids: number[]) {
 }
 
 // ─── Google Auth ────────────────────────────────────────────────────────────
+
+// Profile
+export async function updateProfile(data: Record<string, any>) {
+  const result = await request('/auth/me', { method: 'PUT', body: JSON.stringify(data) });
+  // Update cached user data
+  localStorage.setItem('tvl_user', JSON.stringify(result));
+  return result;
+}
+
+export async function changePassword(currentPassword: string, newPassword: string) {
+  return request('/auth/change-password', {
+    method: 'PUT',
+    body: JSON.stringify({ current_password: currentPassword, new_password: newPassword }),
+  });
+}
+
+// Password Reset
+export async function forgotPassword(email: string) {
+  return request('/auth/forgot-password', { method: 'POST', body: JSON.stringify({ email }) });
+}
+
+export async function resetPassword(token: string, newPassword: string) {
+  return request('/auth/reset-password', { method: 'POST', body: JSON.stringify({ token, new_password: newPassword }) });
+}
+
+// Documents
+export async function uploadDocument(file: File) {
+  const token = getToken();
+  const formData = new FormData();
+  formData.append('file', file);
+  const res = await fetch(`${API_BASE}/documents/upload`, {
+    method: 'POST',
+    headers: { 'Authorization': `Bearer ${token}` },
+    body: formData,
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ detail: 'Upload failed' }));
+    throw new Error(err.detail);
+  }
+  return res.json();
+}
+
+export async function getDocuments(params?: { status?: string; skip?: number; limit?: number }) {
+  const query = new URLSearchParams();
+  if (params) Object.entries(params).forEach(([k, v]) => { if (v !== undefined) query.set(k, String(v)); });
+  return request(`/documents/?${query}`);
+}
+
+export async function getDocument(id: number) {
+  return request(`/documents/${id}`);
+}
+
+export async function analyzeDocument(id: number) {
+  return request(`/documents/${id}/analyze`, { method: 'POST' });
+}
+
+export async function deleteDocument(id: number) {
+  const token = getToken();
+  const res = await fetch(`${API_BASE}/documents/${id}`, {
+    method: 'DELETE',
+    headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+  });
+  if (!res.ok) { const err = await res.json().catch(() => ({ detail: 'Delete failed' })); throw new Error(err.detail); }
+}
 
 export async function googleLogin(token: string, role: string = 'client') {
   const data = await request('/auth/google', {
@@ -356,4 +427,104 @@ export async function getLawyerDirectory(params?: { search?: string; city?: stri
   const query = new URLSearchParams();
   if (params) Object.entries(params).forEach(([k, v]) => { if (v !== undefined) query.set(k, String(v)); });
   return request(`/directory/?${query}`);
+}
+
+// ─── AI Tools ────────────────────────────────────────────────────────────────
+
+export async function aiSummarize(text: string, language?: string) {
+  return request('/ai-tools/summarize', { method: 'POST', body: JSON.stringify({ text, language }) });
+}
+
+export async function aiOpinion(facts: string, area_of_law?: string, language?: string) {
+  return request('/ai-tools/opinion', { method: 'POST', body: JSON.stringify({ facts, area_of_law, language }) });
+}
+
+export async function aiPredict(case_description: string, area_of_law?: string, language?: string) {
+  return request('/ai-tools/predict', { method: 'POST', body: JSON.stringify({ case_description, area_of_law, language }) });
+}
+
+export async function aiAnalyzeContract(contract_text: string, language?: string) {
+  return request('/ai-tools/analyze-contract', { method: 'POST', body: JSON.stringify({ contract_text, language }) });
+}
+
+export async function aiFindCitations(legal_principle: string, area_of_law?: string, language?: string) {
+  return request('/ai-tools/find-citations', { method: 'POST', body: JSON.stringify({ legal_principle, area_of_law, language }) });
+}
+
+// ─── Messaging ───────────────────────────────────────────────────────────────
+
+export async function getConversations() {
+  return request('/messaging/conversations');
+}
+
+export async function sendDirectMessage(recipient_id: number, content: string) {
+  return request('/messaging/send', { method: 'POST', body: JSON.stringify({ recipient_id, content }) });
+}
+
+export async function getConversationMessages(conversationId: number) {
+  return request(`/messaging/conversations/${conversationId}/messages`);
+}
+
+export async function getUnreadMessageCount(): Promise<{ unread_count: number }> {
+  return request('/messaging/unread-count');
+}
+
+// ─── Consultations ───────────────────────────────────────────────────────────
+
+export async function getConsultations(status?: string) {
+  const query = new URLSearchParams();
+  if (status) query.set('status', status);
+  return request(`/consultations/?${query}`);
+}
+
+export async function createConsultation(data: Record<string, any>) {
+  return request('/consultations/', { method: 'POST', body: JSON.stringify(data) });
+}
+
+export async function updateConsultation(id: number, data: Record<string, any>) {
+  return request(`/consultations/${id}`, { method: 'PUT', body: JSON.stringify(data) });
+}
+
+export async function deleteConsultation(id: number) {
+  const token = getToken();
+  const res = await fetch(`${API_BASE}/consultations/${id}`, {
+    method: 'DELETE', headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+  });
+  if (!res.ok) { const err = await res.json().catch(() => ({ detail: 'Delete failed' })); throw new Error(err.detail); }
+}
+
+export async function getAvailableLawyers(search?: string) {
+  const query = new URLSearchParams();
+  if (search) query.set('search', search);
+  return request(`/consultations/lawyers?${query}`);
+}
+
+// ─── Audit Logs ──────────────────────────────────────────────────────────────
+
+export async function getAuditLogs(params?: { action?: string; resource_type?: string; user_id?: number; skip?: number; limit?: number }) {
+  const query = new URLSearchParams();
+  if (params) Object.entries(params).forEach(([k, v]) => { if (v !== undefined) query.set(k, String(v)); });
+  return request(`/audit-logs/?${query}`);
+}
+
+export async function getAuditLogActions() {
+  return request('/audit-logs/actions');
+}
+
+// ─── Student Tools (Moot Court & Exam Prep) ──────────────────────────────────
+
+export async function generateMootScenario(topic: string, side?: string) {
+  return request('/student-tools/moot-court/scenario', { method: 'POST', body: JSON.stringify({ topic, side }) });
+}
+
+export async function evaluateMootArgument(scenario: string, your_argument: string, side?: string) {
+  return request('/student-tools/moot-court/evaluate', { method: 'POST', body: JSON.stringify({ scenario, your_argument, side }) });
+}
+
+export async function generateExamQuestions(subject: string, topic?: string, num_questions?: number) {
+  return request('/student-tools/exam-prep/generate', { method: 'POST', body: JSON.stringify({ subject, topic, num_questions }) });
+}
+
+export async function evaluateExamAnswer(question: string, student_answer: string, subject: string) {
+  return request('/student-tools/exam-prep/evaluate', { method: 'POST', body: JSON.stringify({ question, student_answer, subject }) });
 }

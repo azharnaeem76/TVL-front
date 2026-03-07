@@ -1,8 +1,9 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import Link from 'next/link';
 import { getNotifications, markNotificationRead, markAllNotificationsRead, getUnreadNotificationCount, isLoggedIn } from '@/lib/api';
+import { useSocket } from '@/lib/socket';
 
 interface Notification {
   id: number;
@@ -20,9 +21,11 @@ export default function NotificationBell() {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const ref = useRef<HTMLDivElement>(null);
+  const { on, connected } = useSocket();
 
   useEffect(() => { setMounted(true); }, []);
 
+  // Fetch initial count + fallback polling (longer interval when socket is connected)
   useEffect(() => {
     if (!mounted || !isLoggedIn()) return;
 
@@ -36,16 +39,34 @@ export default function NotificationBell() {
     };
 
     fetchCount();
-    const interval = setInterval(fetchCount, 30000); // poll every 30s
+    // Poll less frequently when socket is connected (120s vs 30s)
+    const interval = setInterval(fetchCount, connected ? 120000 : 30000);
     return () => clearInterval(interval);
-  }, [mounted]);
+  }, [mounted, connected]);
+
+  // Listen for real-time notifications via Socket.IO
+  useEffect(() => {
+    if (!mounted || !isLoggedIn()) return;
+
+    const unsub1 = on('new_notification', (notif: any) => {
+      setUnreadCount(prev => prev + 1);
+      // If dropdown is open, prepend the new notification
+      setNotifications(prev => prev.length > 0 ? [notif, ...prev] : prev);
+    });
+
+    const unsub2 = on('unread_count', (data: { unread_count: number }) => {
+      setUnreadCount(data.unread_count);
+    });
+
+    return () => { unsub1(); unsub2(); };
+  }, [mounted, on]);
 
   useEffect(() => {
     if (!open || !isLoggedIn()) return;
     const fetchNotifications = async () => {
       try {
         const data = await getNotifications({ limit: 10 });
-        setNotifications(data.notifications || data);
+        setNotifications(data.items || data.notifications || data);
       } catch {
         // ignore
       }

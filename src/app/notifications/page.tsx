@@ -24,15 +24,16 @@ export default function NotificationsPage() {
   useEffect(() => {
     setMounted(true);
     if (typeof window !== 'undefined' && !isLoggedIn()) {
-      router.push('/login');
+      router.replace('/login');
     }
-  }, [router]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     if (!mounted || !isLoggedIn()) return;
     setLoading(true);
     getNotifications({ limit: 50 })
-      .then(data => setNotifications(data.notifications || data))
+      .then(data => setNotifications(data.items || data.notifications || data))
       .catch(() => {})
       .finally(() => setLoading(false));
   }, [mounted]);

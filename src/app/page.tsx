@@ -438,7 +438,7 @@ export default function HomePage() {
           </div>
           <div className="divider-ornate mb-8" />
           <div className="flex flex-col md:flex-row justify-between items-center text-xs text-gray-600">
-            <p>2024 TVL — The Value of Law. All rights reserved.</p>
+            <p>{new Date().getFullYear()} TVL — The Value of Law. All rights reserved.</p>
             <p className="mt-2 md:mt-0 italic font-serif text-brass-400/30">According to Spirit Of Law</p>
           </div>
         </div>

@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import Logo from '@/components/Logo';
+import NotificationBell from '@/components/NotificationBell';
 import { getCurrentUser, logout } from '@/lib/api';
 import { ThemeToggle } from '@/lib/theme';
 import { LanguageSwitcher, useI18n } from '@/lib/i18n';
@@ -106,6 +107,7 @@ export default function Navbar() {
 
             {user ? (
               <div className="flex items-center space-x-3">
+                <NotificationBell />
                 <Link href="/settings" className="w-8 h-8 rounded-full bg-gradient-to-br from-brass-500 to-wood-700 flex items-center justify-center text-xs font-bold text-white shadow-glow-gold/20 hover:scale-110 transition-transform">
                   {user.full_name?.charAt(0)?.toUpperCase() || 'U'}
                 </Link>
@@ -159,6 +161,10 @@ export default function Navbar() {
             <div className="divider my-2" />
             {user ? (
               <>
+                <div className="flex items-center gap-2 px-4 py-2">
+                  <NotificationBell />
+                  <span className="text-sm text-gray-400">Notifications</span>
+                </div>
                 <Link href="/settings" className="block px-4 py-2.5 text-sm text-gray-400 hover:text-brass-300 hover:bg-white/[0.04] rounded-lg">Settings</Link>
                 <button onClick={handleLogout} className="block w-full text-left px-4 py-2.5 text-sm text-red-400 hover:bg-white/[0.04] rounded-lg">
                   Logout

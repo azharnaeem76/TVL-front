@@ -33,7 +33,7 @@ export default function DirectoryPage() {
         city: city || undefined,
         specialization: specialization || undefined,
       });
-      setLawyers(data);
+      setLawyers(Array.isArray(data) ? data : data.items || []);
     } catch {
       // silently fail
     } finally {

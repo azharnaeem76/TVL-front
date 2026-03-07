@@ -160,7 +160,7 @@ export default function CaseLawDetailPage() {
             <div className="court-panel p-6">
               <h2 className="text-lg font-display font-semibold text-brass-300 mb-3">Sections Applied</h2>
               <div className="flex flex-wrap gap-2">
-                {JSON.parse(caseLaw.sections_applied).map((s: string, i: number) => (
+                {(() => { try { return JSON.parse(caseLaw.sections_applied); } catch { return []; } })().map((s: string, i: number) => (
                   <span key={i} className="badge-verdict">{s}</span>
                 ))}
               </div>

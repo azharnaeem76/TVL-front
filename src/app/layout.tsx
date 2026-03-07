@@ -1,6 +1,13 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import '@/styles/globals.css';
 import { ClientLayout } from '@/components/ClientLayout';
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 5,
+  themeColor: '#0a0e1a',
+};
 
 export const metadata: Metadata = {
   title: {
@@ -65,7 +72,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <meta name="theme-color" content="#0a0e1a" />
+
         <script src="https://accounts.google.com/gsi/client" async defer />
         <link rel="apple-touch-icon" href="/icons/icon-192.png" />
         <script

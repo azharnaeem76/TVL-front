@@ -42,9 +42,10 @@ export default function CaseTrackerPage() {
   useEffect(() => {
     setMounted(true);
     if (typeof window !== 'undefined' && !isLoggedIn()) {
-      router.push('/login');
+      router.replace('/login');
     }
-  }, [router]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const loadCases = useCallback(async () => {
     setLoading(true);
@@ -195,7 +196,7 @@ export default function CaseTrackerPage() {
         {/* Add/Edit Modal */}
         {modalOpen && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4" onClick={() => setModalOpen(false)}>
-            <div className="court-panel p-5 sm:p-6 w-full max-w-lg max-h-[85vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+            <div className="court-panel p-5 sm:p-6 w-full max-w-lg max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
               <h3 className="text-lg font-bold text-brass-400 mb-4">
                 {editing.id ? 'Edit Case' : 'Add New Case'}
               </h3>

@@ -54,6 +54,8 @@ interface User {
   role: string;
   city: string | null;
   is_active: boolean;
+  is_suspended: boolean;
+  suspension_reason: string | null;
 }
 
 interface FeatureFlag {
@@ -73,7 +75,8 @@ function Toast({ message, type, onClose }: { message: string; type: 'success' | 
   useEffect(() => {
     const t = setTimeout(onClose, 3500);
     return () => clearTimeout(t);
-  }, [onClose]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <div className={`fixed top-6 right-6 z-[100] px-5 py-3 rounded-xl shadow-2xl border backdrop-blur-sm animate-fade-in flex items-center gap-3 ${
@@ -197,12 +200,12 @@ export default function AdminPage() {
 
   useEffect(() => {
     if (!isLoggedIn()) {
-      router.push('/login');
+      router.replace('/login');
       return;
     }
     const user = getCurrentUser();
     if (!user || user.role !== 'admin') {
-      router.push('/dashboard');
+      router.replace('/dashboard');
       return;
     }
     setAuthorized(true);
@@ -218,7 +221,8 @@ export default function AdminPage() {
         else if (tab === 'statutes') setTimeout(() => setStModal('add'), 300);
       }
     }
-  }, [router]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // ── Load Stats ──
 
@@ -247,7 +251,7 @@ export default function AdminPage() {
       if (clCategory) params.set('category', clCategory);
       if (clCourt) params.set('court', clCourt);
       const data = await apiCall('/admin/case-laws?' + params.toString());
-      setCaseLaws(Array.isArray(data) ? data : data.results || []);
+      setCaseLaws(Array.isArray(data) ? data : data.items || data.results || []);
       setClTotal(data.total ?? (Array.isArray(data) ? data.length : 0));
       setClPage(page);
     } catch (err: any) {
@@ -292,14 +296,71 @@ export default function AdminPage() {
     }
   };
 
+  const CSV_HEADERS = ['citation', 'title', 'court', 'category', 'year', 'judge_name', 'summary_en', 'summary_ur', 'full_text', 'headnotes', 'relevant_statutes', 'sections_applied'];
+  const VALID_COURTS = ['supreme_court', 'federal_shariat_court', 'lahore_high_court', 'sindh_high_court', 'peshawar_high_court', 'balochistan_high_court', 'islamabad_high_court', 'district_court', 'session_court', 'family_court', 'banking_court', 'anti_terrorism_court'];
+  const VALID_CATEGORIES = ['criminal', 'civil', 'constitutional', 'family', 'corporate', 'taxation', 'labor', 'property', 'cyber', 'banking', 'intellectual_property', 'human_rights', 'environmental', 'islamic'];
+
+  const downloadTemplate = () => {
+    const sampleRows = [
+      CSV_HEADERS.join(','),
+    ];
+    const csvContent = sampleRows.join('\n');
+    const blob = new Blob(['\ufeff' + csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'case_laws_template.csv';
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const parseCsvLine = (line: string): string[] => {
+    const result: string[] = [];
+    let current = '';
+    let inQuotes = false;
+    for (let i = 0; i < line.length; i++) {
+      const ch = line[i];
+      if (ch === '"') {
+        if (inQuotes && line[i + 1] === '"') { current += '"'; i++; }
+        else inQuotes = !inQuotes;
+      } else if (ch === ',' && !inQuotes) {
+        result.push(current.trim());
+        current = '';
+      } else {
+        current += ch;
+      }
+    }
+    result.push(current.trim());
+    return result;
+  };
+
   const bulkImportCaseLaws = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
     try {
       const text = await file.text();
-      const items = JSON.parse(text);
-      if (!Array.isArray(items)) throw new Error('JSON must be an array');
-      await apiCall('/admin/case-laws/bulk', { method: 'POST', body: JSON.stringify(items) });
+      let items: any[];
+
+      if (file.name.endsWith('.csv')) {
+        const lines = text.split('\n').filter(l => l.trim());
+        if (lines.length < 2) throw new Error('CSV must have a header row and at least one data row');
+        const headers = parseCsvLine(lines[0]).map(h => h.replace(/^"|"$/g, '').trim().toLowerCase());
+        items = lines.slice(1).map(line => {
+          const values = parseCsvLine(line);
+          const obj: any = {};
+          headers.forEach((h, i) => {
+            const val = values[i] || '';
+            if (h === 'year') obj[h] = val ? parseInt(val) : null;
+            else obj[h] = val || null;
+          });
+          return obj;
+        });
+      } else {
+        items = JSON.parse(text);
+        if (!Array.isArray(items)) throw new Error('JSON must be an array');
+      }
+
+      await apiCall('/admin/case-laws/bulk', { method: 'POST', body: JSON.stringify({ case_laws: items }) });
       showToast(`Imported ${items.length} case laws`, 'success');
       loadCaseLaws(0);
       loadStats();
@@ -318,7 +379,7 @@ export default function AdminPage() {
       params.set('limit', String(PAGE_SIZE));
       params.set('skip', String(page * PAGE_SIZE));
       const data = await apiCall('/admin/statutes?' + params.toString());
-      setStatutes(Array.isArray(data) ? data : data.results || []);
+      setStatutes(Array.isArray(data) ? data : data.items || data.results || []);
       setStTotal(data.total ?? (Array.isArray(data) ? data.length : 0));
       setStPage(page);
     } catch (err: any) {
@@ -373,7 +434,7 @@ export default function AdminPage() {
       params.set('skip', String(page * PAGE_SIZE));
       if (secStatuteFilter) params.set('statute_id', secStatuteFilter);
       const data = await apiCall('/admin/sections?' + params.toString());
-      setSections(Array.isArray(data) ? data : data.results || []);
+      setSections(Array.isArray(data) ? data : data.items || data.results || []);
       setSecTotal(data.total ?? (Array.isArray(data) ? data.length : 0));
       setSecPage(page);
     } catch (err: any) {
@@ -427,7 +488,7 @@ export default function AdminPage() {
       params.set('limit', String(PAGE_SIZE));
       params.set('skip', String(page * PAGE_SIZE));
       const data = await apiCall('/admin/users?' + params.toString());
-      setUsers(Array.isArray(data) ? data : data.results || []);
+      setUsers(Array.isArray(data) ? data : data.items || data.results || []);
       setUsTotal(data.total ?? (Array.isArray(data) ? data.length : 0));
       setUsPage(page);
     } catch (err: any) {
@@ -464,13 +525,64 @@ export default function AdminPage() {
     }
   };
 
+  const [userModal, setUserModal] = useState(false);
+  const [userEditing, setUserEditing] = useState<Record<string, any>>({ role: 'client', preferred_language: 'en' });
+
+  const saveUser = async () => {
+    if (!userEditing.email || !userEditing.full_name || !userEditing.password) {
+      showToast('Email, full name, and password are required', 'error');
+      return;
+    }
+    try {
+      await apiCall('/admin/users', { method: 'POST', body: JSON.stringify(userEditing) });
+      showToast('User created successfully', 'success');
+      setUserModal(false);
+      setUserEditing({ role: 'client', preferred_language: 'en' });
+      loadUsers(usPage);
+      loadStats();
+    } catch (err: any) {
+      showToast(err.message || 'Create failed', 'error');
+    }
+  };
+
+  const [suspendModal, setSuspendModal] = useState<User | null>(null);
+  const [suspendReason, setSuspendReason] = useState('');
+
+  const suspendUser = async (user: User) => {
+    try {
+      await apiCall(`/admin/users/${user.id}`, {
+        method: 'PUT',
+        body: JSON.stringify({ is_suspended: true, suspension_reason: suspendReason || 'Suspended by admin' }),
+      });
+      showToast('User suspended', 'success');
+      setSuspendModal(null);
+      setSuspendReason('');
+      loadUsers(usPage);
+    } catch (err: any) {
+      showToast(err.message || 'Suspend failed', 'error');
+    }
+  };
+
+  const unsuspendUser = async (user: User) => {
+    try {
+      await apiCall(`/admin/users/${user.id}`, {
+        method: 'PUT',
+        body: JSON.stringify({ is_suspended: false, suspension_reason: null }),
+      });
+      showToast('User unsuspended', 'success');
+      loadUsers(usPage);
+    } catch (err: any) {
+      showToast(err.message || 'Unsuspend failed', 'error');
+    }
+  };
+
   // ── Feature Flags ──
 
   const loadFeatures = useCallback(async () => {
     setFeatLoading(true);
     try {
       const data = await getFeatureFlags();
-      setFeatureFlags(data);
+      setFeatureFlags(Array.isArray(data) ? data : data.items || []);
     } catch (err: any) {
       showToast(err.message || 'Failed to load features', 'error');
     } finally {
@@ -572,6 +684,102 @@ export default function AdminPage() {
 
       {/* Toast */}
       {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
+
+      {/* Suspend User Modal */}
+      {suspendModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm" onClick={() => { setSuspendModal(null); setSuspendReason(''); }}>
+          <div className="court-panel p-6 w-full max-w-md mx-4" onClick={e => e.stopPropagation()}>
+            <h3 className="text-lg font-bold text-orange-400 mb-2">Suspend User</h3>
+            <p className="text-gray-300 text-sm mb-4">
+              Suspend <strong className="text-white">{suspendModal.full_name}</strong> ({suspendModal.email})? They will be unable to log in or use the platform.
+            </p>
+            <div className="mb-4">
+              <label className="block text-xs font-medium text-gray-400 mb-1.5 uppercase tracking-wider">Reason (optional)</label>
+              <textarea
+                className="input-field w-full !border-orange-400/20 focus:!border-orange-400/40"
+                rows={3}
+                placeholder="e.g. Violation of terms of service, Suspicious activity..."
+                value={suspendReason}
+                onChange={e => setSuspendReason(e.target.value)}
+              />
+            </div>
+            <div className="flex justify-end gap-3">
+              <button onClick={() => { setSuspendModal(null); setSuspendReason(''); }} className="px-4 py-2 rounded-lg text-sm text-gray-400 hover:text-white border border-white/10 hover:border-white/20 transition-colors">
+                Cancel
+              </button>
+              <button onClick={() => suspendUser(suspendModal)} className="px-4 py-2 rounded-lg text-sm bg-orange-600 hover:bg-orange-500 text-white transition-colors">
+                Suspend User
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Create User Modal */}
+      {userModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4" onClick={() => setUserModal(false)}>
+          <div className="court-panel p-6 w-full max-w-lg max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+            <h3 className="text-lg font-bold text-brass-400 mb-4 flex items-center gap-2">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 7.5v3m0 0v3m0-3h3m-3 0h-3m-2.25-4.125a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zM4 19.235v-.11a6.375 6.375 0 0112.75 0v.109A12.318 12.318 0 0110.374 21c-2.331 0-4.512-.645-6.374-1.766z" /></svg>
+              Create New User
+            </h3>
+            <div className="space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="sm:col-span-2">
+                  <label className="block text-xs text-gray-400 mb-1">Full Name *</label>
+                  <input className="input-field w-full" value={userEditing.full_name || ''} onChange={e => setUserEditing(p => ({ ...p, full_name: e.target.value }))} placeholder="Full name" />
+                </div>
+                <div className="sm:col-span-2">
+                  <label className="block text-xs text-gray-400 mb-1">Email *</label>
+                  <input type="email" className="input-field w-full" value={userEditing.email || ''} onChange={e => setUserEditing(p => ({ ...p, email: e.target.value }))} placeholder="user@example.com" />
+                </div>
+                <div className="sm:col-span-2">
+                  <label className="block text-xs text-gray-400 mb-1">Password *</label>
+                  <input type="password" className="input-field w-full" value={userEditing.password || ''} onChange={e => setUserEditing(p => ({ ...p, password: e.target.value }))} placeholder="Minimum 6 characters" />
+                </div>
+                <div>
+                  <label className="block text-xs text-gray-400 mb-1">Role *</label>
+                  <select className="input-field w-full" value={userEditing.role || 'client'} onChange={e => setUserEditing(p => ({ ...p, role: e.target.value }))}>
+                    {roles.map(r => <option key={r} value={r}>{formatLabel(r)}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs text-gray-400 mb-1">Language</label>
+                  <select className="input-field w-full" value={userEditing.preferred_language || 'en'} onChange={e => setUserEditing(p => ({ ...p, preferred_language: e.target.value }))}>
+                    <option value="en">English</option>
+                    <option value="ur">Urdu</option>
+                    <option value="roman_ur">Roman Urdu</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs text-gray-400 mb-1">Phone</label>
+                  <input className="input-field w-full" value={userEditing.phone || ''} onChange={e => setUserEditing(p => ({ ...p, phone: e.target.value }))} placeholder="Phone number" />
+                </div>
+                <div>
+                  <label className="block text-xs text-gray-400 mb-1">City</label>
+                  <input className="input-field w-full" value={userEditing.city || ''} onChange={e => setUserEditing(p => ({ ...p, city: e.target.value }))} placeholder="City" />
+                </div>
+                <div>
+                  <label className="block text-xs text-gray-400 mb-1">Bar Number</label>
+                  <input className="input-field w-full" value={userEditing.bar_number || ''} onChange={e => setUserEditing(p => ({ ...p, bar_number: e.target.value }))} placeholder="For lawyers" />
+                </div>
+                <div>
+                  <label className="block text-xs text-gray-400 mb-1">Specialization</label>
+                  <input className="input-field w-full" value={userEditing.specialization || ''} onChange={e => setUserEditing(p => ({ ...p, specialization: e.target.value }))} placeholder="e.g., Criminal Law" />
+                </div>
+              </div>
+            </div>
+            <div className="flex justify-end gap-3 mt-6 pt-4 border-t border-white/5">
+              <button onClick={() => setUserModal(false)} className="px-4 py-2 rounded-lg text-sm text-gray-400 hover:text-white border border-white/10 hover:border-white/20 transition-colors">
+                Cancel
+              </button>
+              <button onClick={saveUser} className="btn-primary !px-5 !py-2 !text-sm">
+                Create User
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Delete Confirms */}
       {clDeleting && (
@@ -772,7 +980,7 @@ export default function AdminPage() {
             { label: 'Sections', value: stats.total_sections, color: 'from-blue-400/20 to-blue-400/5', icon: <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8.25 6.75h12M8.25 12h12m-12 5.25h12M3.75 6.75h.007v.008H3.75V6.75zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zM3.75 12h.007v.008H3.75V12zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm-.375 5.25h.007v.008H3.75v-.008zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" /></svg> },
             { label: 'Users', value: stats.total_users, color: 'from-purple-400/20 to-purple-400/5', icon: <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z" /></svg> },
           ].map(s => (
-            <div key={s.label} className="card-court p-5 cursor-pointer" onClick={() => setActiveTab(s.label.toLowerCase().replace(' ', '-') as Tab)}>
+            <div key={s.label} className="card-court p-5 cursor-pointer relative overflow-hidden" onClick={() => setActiveTab(s.label.toLowerCase().replace(' ', '-') as Tab)}>
               <div className={`absolute inset-0 bg-gradient-to-br ${s.color} rounded-xl opacity-50`} />
               <div className="relative z-10">
                 <div className="flex items-center justify-between mb-2">
@@ -842,9 +1050,13 @@ export default function AdminPage() {
               </button>
               <button onClick={() => fileInputRef.current?.click()} className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-gray-400 border border-white/10 hover:border-brass-400/30 hover:text-brass-300 transition-colors">
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" /></svg>
-                Bulk Import JSON
+                Bulk Import
               </button>
-              <input ref={fileInputRef} type="file" accept=".json" className="hidden" onChange={bulkImportCaseLaws} />
+              <button onClick={downloadTemplate} className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-gray-400 border border-white/10 hover:border-emerald-400/30 hover:text-emerald-300 transition-colors">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" /></svg>
+                Download Template
+              </button>
+              <input ref={fileInputRef} type="file" accept=".json,.csv" className="hidden" onChange={bulkImportCaseLaws} />
             </div>
 
             {/* Table */}
@@ -1025,6 +1237,13 @@ export default function AdminPage() {
           <div className="court-panel p-6">
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-lg font-semibold text-white">Users Management</h2>
+              <button
+                onClick={() => { setUserEditing({ role: 'client', preferred_language: 'en' }); setUserModal(true); }}
+                className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium bg-brass-400/15 text-brass-300 border border-brass-400/30 hover:bg-brass-400/25 transition-colors"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.5v15m7.5-7.5h-15" /></svg>
+                Create User
+              </button>
             </div>
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
@@ -1060,25 +1279,48 @@ export default function AdminPage() {
                       </td>
                       <td className="py-3 px-3 text-gray-400 text-xs">{u.city || '-'}</td>
                       <td className="py-3 px-3">
-                        <span className={`px-2 py-0.5 rounded-full text-xs border ${
-                          u.is_active
-                            ? 'bg-emerald-400/10 text-emerald-400 border-emerald-400/20'
-                            : 'bg-red-400/10 text-red-400 border-red-400/20'
-                        }`}>
-                          {u.is_active ? 'Active' : 'Inactive'}
-                        </span>
+                        <div className="flex flex-col gap-1">
+                          <span className={`px-2 py-0.5 rounded-full text-xs border inline-block w-fit ${
+                            !u.is_active
+                              ? 'bg-red-400/10 text-red-400 border-red-400/20'
+                              : u.is_suspended
+                                ? 'bg-orange-400/10 text-orange-400 border-orange-400/20'
+                                : 'bg-emerald-400/10 text-emerald-400 border-emerald-400/20'
+                          }`}>
+                            {!u.is_active ? 'Inactive' : u.is_suspended ? 'Suspended' : 'Active'}
+                          </span>
+                          {u.is_suspended && u.suspension_reason && (
+                            <span className="text-[10px] text-orange-400/60 truncate max-w-[150px]" title={u.suspension_reason}>
+                              {u.suspension_reason}
+                            </span>
+                          )}
+                        </div>
                       </td>
                       <td className="py-3 px-3 text-right">
-                        <button
-                          onClick={() => toggleUserStatus(u)}
-                          className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${
-                            u.is_active
-                              ? 'text-red-400 border-red-400/20 hover:bg-red-400/10'
-                              : 'text-emerald-400 border-emerald-400/20 hover:bg-emerald-400/10'
-                          }`}
-                        >
-                          {u.is_active ? 'Deactivate' : 'Activate'}
-                        </button>
+                        <div className="flex justify-end gap-2">
+                          <button
+                            onClick={() => toggleUserStatus(u)}
+                            className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${
+                              u.is_active
+                                ? 'text-red-400 border-red-400/20 hover:bg-red-400/10'
+                                : 'text-emerald-400 border-emerald-400/20 hover:bg-emerald-400/10'
+                            }`}
+                          >
+                            {u.is_active ? 'Deactivate' : 'Activate'}
+                          </button>
+                          {u.is_active && (
+                            <button
+                              onClick={() => u.is_suspended ? unsuspendUser(u) : setSuspendModal(u)}
+                              className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${
+                                u.is_suspended
+                                  ? 'text-emerald-400 border-emerald-400/20 hover:bg-emerald-400/10'
+                                  : 'text-orange-400 border-orange-400/20 hover:bg-orange-400/10'
+                              }`}
+                            >
+                              {u.is_suspended ? 'Unsuspend' : 'Suspend'}
+                            </button>
+                          )}
+                        </div>
                       </td>
                     </tr>
                   ))}
@@ -1098,6 +1340,8 @@ export default function AdminPage() {
 
             {featLoading ? (
               <div className="py-12 text-center text-gray-500">Loading features...</div>
+            ) : featureFlags.length === 0 ? (
+              <div className="py-12 text-center text-gray-500">No features found. Make sure the backend has seeded feature flags.</div>
             ) : (
               <div className="space-y-8">
                 {['core', 'ai', 'collaboration', 'business', 'student', 'notifications'].map(category => {

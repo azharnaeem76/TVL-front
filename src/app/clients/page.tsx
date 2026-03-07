@@ -29,15 +29,16 @@ export default function ClientsPage() {
   useEffect(() => {
     setMounted(true);
     if (typeof window !== 'undefined' && !isLoggedIn()) {
-      router.push('/login');
+      router.replace('/login');
     }
-  }, [router]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const loadClients = useCallback(async () => {
     setLoading(true);
     try {
       const data = await getClients({ search: search || undefined });
-      setClients(data);
+      setClients(Array.isArray(data) ? data : data.items || []);
     } catch {
       // silently fail
     } finally {
@@ -161,7 +162,7 @@ export default function ClientsPage() {
         {/* Add/Edit Modal */}
         {modalOpen && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4" onClick={() => setModalOpen(false)}>
-            <div className="court-panel p-5 sm:p-6 w-full max-w-lg max-h-[85vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+            <div className="court-panel p-5 sm:p-6 w-full max-w-lg max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
               <h3 className="text-lg font-bold text-brass-400 mb-4">
                 {editing.id ? 'Edit Client' : 'Add New Client'}
               </h3>
@@ -171,7 +172,7 @@ export default function ClientsPage() {
                   <label className="block text-xs text-gray-500 mb-1">Name *</label>
                   <input className="input-field w-full" value={editing.name || ''} onChange={e => setEditing({ ...editing, name: e.target.value })} />
                 </div>
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
                     <label className="block text-xs text-gray-500 mb-1">Email</label>
                     <input type="email" className="input-field w-full" value={editing.email || ''} onChange={e => setEditing({ ...editing, email: e.target.value })} />

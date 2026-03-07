@@ -475,7 +475,7 @@ function SearchPage() {
                           <div>
                             <h5 className="text-sm font-semibold text-brass-400/60 mb-1">Sections Applied</h5>
                             <div className="flex flex-wrap gap-1">
-                              {JSON.parse(cl.sections_applied).map((s: string, i: number) => (
+                              {(() => { try { return JSON.parse(cl.sections_applied); } catch { return []; } })().map((s: string, i: number) => (
                                 <span key={i} className="badge-verdict text-[10px]">{s}</span>
                               ))}
                             </div>
