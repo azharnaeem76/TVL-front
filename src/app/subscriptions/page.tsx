@@ -1,12 +1,13 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Navbar from '@/components/Navbar';
 import { useToast } from '@/components/Toast';
-import { getCurrentUser } from '@/lib/api';
+import { getCurrentUser, getMyPlan, requestUpgrade } from '@/lib/api';
 
 const PLANS = [
   {
+    key: 'free',
     name: 'Free',
     price: 0,
     period: 'forever',
@@ -22,6 +23,7 @@ const PLANS = [
     btnClass: 'bg-gray-500/10 text-gray-400',
   },
   {
+    key: 'pro',
     name: 'Pro',
     price: 2000,
     period: '/month',
@@ -41,6 +43,7 @@ const PLANS = [
     popular: true,
   },
   {
+    key: 'firm',
     name: 'Firm',
     price: 8000,
     period: '/month',
@@ -62,12 +65,31 @@ const PLANS = [
 ];
 
 export default function SubscriptionsPage() {
-  const [currentPlan] = useState('Free');
+  const [currentPlan, setCurrentPlan] = useState('free');
+  const [loading, setLoading] = useState(true);
+  const [upgrading, setUpgrading] = useState('');
   const { showToast } = useToast();
 
-  const handleSelect = (plan: string) => {
-    if (plan === currentPlan) return;
-    showToast(`Subscription management requires payment integration. Contact admin to upgrade to ${plan}.`, 'info');
+  useEffect(() => {
+    getMyPlan()
+      .then(data => setCurrentPlan(data.plan || 'free'))
+      .catch(() => {
+        const user = getCurrentUser();
+        setCurrentPlan(user?.plan || 'free');
+      })
+      .finally(() => setLoading(false));
+  }, []);
+
+  const handleSelect = async (planKey: string) => {
+    if (planKey === currentPlan) return;
+    setUpgrading(planKey);
+    try {
+      const result = await requestUpgrade(planKey);
+      showToast(result.message || 'Upgrade request submitted', 'success');
+    } catch (err: any) {
+      showToast(err.message || 'Failed to request upgrade', 'error');
+    }
+    setUpgrading('');
   };
 
   return (
@@ -78,14 +100,21 @@ export default function SubscriptionsPage() {
           <div className="text-center mb-10">
             <h1 className="text-2xl font-display font-bold text-white">Subscription Plans</h1>
             <p className="text-gray-400 mt-2">Choose the plan that fits your legal practice</p>
-            <p className="text-sm text-brass-400 mt-1">Current plan: <span className="font-semibold">{currentPlan}</span></p>
+            {!loading && (
+              <p className="text-sm text-brass-400 mt-1">
+                Current plan: <span className="font-semibold uppercase">{currentPlan}</span>
+              </p>
+            )}
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {PLANS.map(plan => (
-              <div key={plan.name} className={`relative bg-white/[0.03] border ${plan.color} rounded-xl p-6 ${plan.popular ? 'ring-1 ring-brass-400/30' : ''}`}>
+              <div key={plan.key} className={`relative bg-white/[0.03] border ${plan.color} rounded-xl p-6 ${plan.popular ? 'ring-1 ring-brass-400/30' : ''} ${currentPlan === plan.key ? 'ring-2 ring-green-400/40' : ''}`}>
                 {plan.popular && (
                   <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-0.5 bg-brass-400/20 text-brass-300 text-xs rounded-full">Most Popular</div>
+                )}
+                {currentPlan === plan.key && (
+                  <div className="absolute -top-3 right-4 px-3 py-0.5 bg-green-500/20 text-green-400 text-xs rounded-full">Active</div>
                 )}
                 <div className="text-center mb-6">
                   <h3 className="text-xl font-bold text-white">{plan.name}</h3>
@@ -116,9 +145,18 @@ export default function SubscriptionsPage() {
                   ))}
                 </ul>
 
-                <button onClick={() => handleSelect(plan.name)}
-                  className={`w-full py-2.5 rounded-lg text-sm font-medium transition-colors ${currentPlan === plan.name ? 'bg-white/[0.06] text-gray-500 cursor-default' : `${plan.btnClass} hover:opacity-80`}`}>
-                  {currentPlan === plan.name ? 'Current Plan' : plan.price === 0 ? 'Downgrade' : 'Upgrade'}
+                <button
+                  onClick={() => handleSelect(plan.key)}
+                  disabled={currentPlan === plan.key || upgrading === plan.key}
+                  className={`w-full py-2.5 rounded-lg text-sm font-medium transition-colors ${
+                    currentPlan === plan.key
+                      ? 'bg-green-500/10 text-green-400 cursor-default'
+                      : upgrading === plan.key
+                      ? 'bg-white/[0.06] text-gray-500 cursor-wait'
+                      : `${plan.btnClass} hover:opacity-80`
+                  }`}
+                >
+                  {currentPlan === plan.key ? 'Current Plan' : upgrading === plan.key ? 'Requesting...' : plan.price === 0 ? 'Downgrade' : 'Upgrade'}
                 </button>
               </div>
             ))}

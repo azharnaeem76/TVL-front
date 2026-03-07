@@ -528,3 +528,49 @@ export async function generateExamQuestions(subject: string, topic?: string, num
 export async function evaluateExamAnswer(question: string, student_answer: string, subject: string) {
   return request('/student-tools/exam-prep/evaluate', { method: 'POST', body: JSON.stringify({ question, student_answer, subject }) });
 }
+
+// ─── Subscriptions ──────────────────────────────────────────────────────────
+
+export async function getMyPlan() {
+  return request('/subscriptions/my-plan');
+}
+
+export async function requestUpgrade(plan: string) {
+  return request('/subscriptions/upgrade', { method: 'POST', body: JSON.stringify({ plan }) });
+}
+
+export async function adminSetPlan(userId: number, plan: string) {
+  return request(`/subscriptions/set-plan/${userId}`, { method: 'PUT', body: JSON.stringify({ plan }) });
+}
+
+// ─── Support Tickets ────────────────────────────────────────────────────────
+
+export async function createSupportTicket(data: { subject: string; description: string; category?: string; priority?: string }) {
+  return request('/support/tickets', { method: 'POST', body: JSON.stringify(data) });
+}
+
+export async function getSupportTickets(params?: { status_filter?: string; skip?: number; limit?: number }) {
+  const query = new URLSearchParams();
+  if (params) Object.entries(params).forEach(([k, v]) => { if (v !== undefined) query.set(k, String(v)); });
+  return request(`/support/tickets?${query}`);
+}
+
+export async function getSupportTicket(id: number) {
+  return request(`/support/tickets/${id}`);
+}
+
+export async function replySupportTicket(id: number, message: string) {
+  return request(`/support/tickets/${id}/reply`, { method: 'POST', body: JSON.stringify({ message }) });
+}
+
+export async function updateSupportTicket(id: number, data: { status?: string; priority?: string; assigned_to?: number; resolution_note?: string }) {
+  return request(`/support/tickets/${id}`, { method: 'PUT', body: JSON.stringify(data) });
+}
+
+export async function getSupportCategories() {
+  return request('/support/categories');
+}
+
+export async function switchSupportRole(role: string) {
+  return request(`/support/switch-role?role=${role}`, { method: 'POST' });
+}

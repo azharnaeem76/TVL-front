@@ -72,4 +72,5 @@ export const ROUTE_FEATURE_MAP: Record<string, string> = {
   '/exam-prep': 'exam_prep',
   '/audit-logs': 'audit_logs',
   '/push-notifications': 'push_notifications',
+  '/support': 'support',
 };
