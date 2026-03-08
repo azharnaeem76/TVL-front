@@ -5,6 +5,19 @@ import Navbar from '@/components/Navbar';
 import { useToast } from '@/components/Toast';
 import { generateExamQuestions, evaluateExamAnswer } from '@/lib/api';
 
+const EXAM_TYPES = [
+  { key: 'llb', name: 'LLB', desc: '5-year law degree' },
+  { key: 'bar', name: 'Bar Council', desc: 'Pakistan Bar Council licensing' },
+  { key: 'lat', name: 'LAT', desc: 'HEC Law Admission Test' },
+  { key: 'gat_general', name: 'GAT General', desc: 'NTS Graduate Assessment' },
+  { key: 'gat_law', name: 'GAT Law', desc: 'NTS GAT Subject (Law)' },
+  { key: 'css_law', name: 'CSS Law', desc: 'Central Superior Services' },
+  { key: 'pms_law', name: 'PMS Law', desc: 'Provincial Management Services' },
+  { key: 'judiciary', name: 'Judiciary', desc: 'Civil Judge / ASJ exam' },
+  { key: 'nts_law', name: 'NTS Lecturer', desc: 'Law Lecturer test' },
+  { key: 'llm', name: 'LLM Entrance', desc: 'Master of Laws entrance' },
+];
+
 const SUBJECTS = [
   'Pakistan Penal Code (PPC)',
   'Code of Criminal Procedure (CrPC)',
@@ -16,9 +29,16 @@ const SUBJECTS = [
   'Evidence Law (Qanun-e-Shahadat)',
   'PECA 2016 (Cyber Crime)',
   'Labour Laws',
+  'Jurisprudence',
+  'International Law',
+  'Administrative Law',
+  'Equity & Specific Relief',
+  'General Knowledge & Pakistan Studies',
+  'English Comprehension & Analytical Reasoning',
 ];
 
 export default function ExamPrepPage() {
+  const [examType, setExamType] = useState('llb');
   const [subject, setSubject] = useState('');
   const [topic, setTopic] = useState('');
   const [numQ, setNumQ] = useState(5);
@@ -37,7 +57,7 @@ export default function ExamPrepPage() {
     setResults({});
     setShowAnswers(false);
     try {
-      const data = await generateExamQuestions(subject, topic || undefined, numQ);
+      const data = await generateExamQuestions(subject, examType, topic || undefined, numQ);
       setQuestions(data.questions || []);
     } catch (err: any) { showToast(err.message || 'Failed', 'error'); }
     setLoading(false);
@@ -69,11 +89,26 @@ export default function ExamPrepPage() {
         <div className="max-w-4xl mx-auto">
           <div className="mb-8">
             <h1 className="text-2xl font-display font-bold text-white">Exam Preparation</h1>
-            <p className="text-gray-400 mt-1">LLB/Bar exam practice with AI-generated questions</p>
+            <p className="text-gray-400 mt-1">Practice for LLB, Bar, LAT, GAT, CSS, Judiciary and more exams with AI</p>
           </div>
 
           {questions.length === 0 ? (
             <div className="bg-white/[0.03] border border-brass-400/10 rounded-xl p-6">
+              {/* Exam Type Selector */}
+              <div className="mb-5">
+                <label className="text-sm text-gray-400 block mb-2">Exam Type</label>
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2">
+                  {EXAM_TYPES.map(et => (
+                    <button key={et.key} onClick={() => setExamType(et.key)}
+                      className={`text-left p-2.5 rounded-lg transition-colors ${examType === et.key ? 'bg-brass-400/20 text-brass-300 border border-brass-400/30' : 'bg-white/[0.03] text-gray-400 border border-transparent hover:border-brass-400/10'}`}>
+                      <span className="text-sm font-medium block">{et.name}</span>
+                      <span className="text-[10px] text-gray-500 block mt-0.5">{et.desc}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Subject Selector */}
               <div className="mb-4">
                 <label className="text-sm text-gray-400 block mb-2">Subject</label>
                 <div className="grid grid-cols-2 gap-2">
@@ -94,18 +129,18 @@ export default function ExamPrepPage() {
                 <label className="text-sm text-gray-400 block mb-1">Number of questions</label>
                 <select value={numQ} onChange={(e) => setNumQ(parseInt(e.target.value))}
                   className="bg-navy-900/50 border border-brass-400/10 rounded-lg px-4 py-2.5 text-gray-200 focus:outline-none text-sm">
-                  {[3, 5, 10].map(n => <option key={n} value={n}>{n}</option>)}
+                  {[3, 5, 10, 15, 20].map(n => <option key={n} value={n}>{n}</option>)}
                 </select>
               </div>
               <button onClick={handleGenerate} disabled={loading || !subject}
                 className="w-full py-3 bg-brass-400/20 text-brass-300 rounded-lg hover:bg-brass-400/30 transition-colors disabled:opacity-50">
-                {loading ? 'Generating Questions...' : 'Start Practice'}
+                {loading ? 'Generating Questions...' : `Start ${EXAM_TYPES.find(e => e.key === examType)?.name || ''} Practice`}
               </button>
             </div>
           ) : (
             <div className="space-y-4">
               <div className="flex justify-between items-center">
-                <p className="text-gray-400 text-sm">{subject} - {questions.length} questions</p>
+                <p className="text-gray-400 text-sm">{EXAM_TYPES.find(e => e.key === examType)?.name || examType} - {subject} - {questions.length} questions</p>
                 <button onClick={() => { setQuestions([]); setAnswers({}); setResults({}); setShowAnswers(false); }}
                   className="text-xs text-gray-500 hover:text-gray-300">New Quiz</button>
               </div>

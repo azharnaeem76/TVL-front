@@ -572,8 +572,12 @@ export async function evaluateMootArgument(scenario: string, your_argument: stri
   return request('/student-tools/moot-court/evaluate', { method: 'POST', body: JSON.stringify({ scenario, your_argument, side }) });
 }
 
-export async function generateExamQuestions(subject: string, topic?: string, num_questions?: number) {
-  return request('/student-tools/exam-prep/generate', { method: 'POST', body: JSON.stringify({ subject, topic, num_questions }) });
+export async function getExamTypes() {
+  return request('/student-tools/exam-types');
+}
+
+export async function generateExamQuestions(subject: string, exam_type?: string, topic?: string, num_questions?: number) {
+  return request('/student-tools/exam-prep/generate', { method: 'POST', body: JSON.stringify({ subject, exam_type: exam_type || 'llb', topic, num_questions }) });
 }
 
 export async function evaluateExamAnswer(question: string, student_answer: string, subject: string) {
