@@ -1,8 +1,9 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import Navbar from '@/components/Navbar';
 import { GavelSVG } from '@/components/CourtElements';
+import { getStudyQuestions } from '@/lib/api';
 
 interface Question {
   id: number;
@@ -69,9 +70,28 @@ export default function QuizPage() {
   const [answered, setAnswered] = useState(0);
   const [quizQuestions, setQuizQuestions] = useState<Question[]>([]);
   const [finished, setFinished] = useState(false);
+  const [adminQuestions, setAdminQuestions] = useState<Question[]>([]);
+
+  // Fetch admin-created questions on mount
+  useEffect(() => {
+    getStudyQuestions({ limit: 100 }).then((data: any[]) => {
+      const mapped: Question[] = data.map((q: any, i: number) => ({
+        id: 1000 + i,
+        question: q.question || '',
+        options: q.options || [],
+        correct: q.correct ?? 0,
+        explanation: q.explanation || '',
+        category: q.category || 'General',
+        difficulty: q.difficulty || 'medium',
+      }));
+      setAdminQuestions(mapped);
+    }).catch(() => {});
+  }, []);
+
+  const allQuestions = [...QUESTIONS, ...adminQuestions];
 
   const startQuiz = useCallback(() => {
-    let filtered = QUESTIONS;
+    let filtered = allQuestions;
     if (category !== 'All') filtered = filtered.filter(q => q.category === category);
     if (difficulty !== 'all') filtered = filtered.filter(q => q.difficulty === difficulty);
     // Shuffle
@@ -85,7 +105,7 @@ export default function QuizPage() {
     setAnswered(0);
     setFinished(false);
     setQuizStarted(true);
-  }, [category, difficulty]);
+  }, [category, difficulty, allQuestions]);
 
   const handleAnswer = (idx: number) => {
     if (selectedAnswer !== null) return;
@@ -280,9 +300,9 @@ export default function QuizPage() {
           <div className="text-center">
             <p className="text-sm text-gray-500 mb-4">
               {(() => {
-                let count = QUESTIONS.length;
-                if (category !== 'All') count = QUESTIONS.filter(q => q.category === category).length;
-                if (difficulty !== 'all') count = QUESTIONS.filter(q => (category === 'All' || q.category === category) && q.difficulty === difficulty).length;
+                let count = allQuestions.length;
+                if (category !== 'All') count = allQuestions.filter(q => q.category === category).length;
+                if (difficulty !== 'all') count = allQuestions.filter(q => (category === 'All' || q.category === category) && q.difficulty === difficulty).length;
                 return `${count} questions available (max 10 per quiz)`;
               })()}
             </p>

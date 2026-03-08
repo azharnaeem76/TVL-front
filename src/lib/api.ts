@@ -584,6 +584,45 @@ export async function evaluateExamAnswer(question: string, student_answer: strin
   return request('/student-tools/exam-prep/evaluate', { method: 'POST', body: JSON.stringify({ question, student_answer, subject }) });
 }
 
+// ─── Study Content (Admin-managed) ──────────────────────────────────────────
+
+export async function getStudyQuestions(params?: { category?: string; exam_type?: string; difficulty?: string; limit?: number }) {
+  const query = new URLSearchParams();
+  if (params) Object.entries(params).forEach(([k, v]) => { if (v !== undefined) query.set(k, String(v)); });
+  return request(`/study-content/questions?${query}`);
+}
+
+export async function getStudyNotes(params?: { category?: string; exam_type?: string; search?: string; skip?: number; limit?: number }) {
+  const query = new URLSearchParams();
+  if (params) Object.entries(params).forEach(([k, v]) => { if (v !== undefined) query.set(k, String(v)); });
+  return request(`/study-content/notes?${query}`);
+}
+
+export async function getStudyCategories() {
+  return request('/study-content/categories');
+}
+
+export async function adminGetStudyContent(params?: { content_type?: string; category?: string; skip?: number; limit?: number }) {
+  const query = new URLSearchParams();
+  if (params) Object.entries(params).forEach(([k, v]) => { if (v !== undefined) query.set(k, String(v)); });
+  return request(`/study-content/admin/all?${query}`);
+}
+
+export async function adminCreateStudyContent(data: {
+  content_type: string; title: string; category?: string; exam_type?: string;
+  difficulty?: string; content?: string; question_data?: any;
+}) {
+  return request('/study-content/admin/create', { method: 'POST', body: JSON.stringify(data) });
+}
+
+export async function adminUpdateStudyContent(id: number, data: any) {
+  return request(`/study-content/admin/${id}`, { method: 'PUT', body: JSON.stringify(data) });
+}
+
+export async function adminDeleteStudyContent(id: number) {
+  return request(`/study-content/admin/${id}`, { method: 'DELETE' });
+}
+
 // ─── Subscriptions ──────────────────────────────────────────────────────────
 
 export async function getMyPlan() {

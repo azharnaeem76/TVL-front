@@ -64,6 +64,7 @@ function getSidebarLinks(role: string): { section: string; links: SidebarLink[] 
           { href: '/dashboard', label: 'Dashboard', icon: ICO.dashboard },
           { href: '/admin', label: 'Admin Panel', icon: ICO.admin },
           { href: '/admin/features', label: 'Feature Toggles', icon: ICO.features },
+          { href: '/admin/study-content', label: 'Study Content', icon: ICO.learn },
           { href: '/analytics', label: 'Analytics', icon: ICO.analytics },
           { href: '/audit-logs', label: 'Audit Logs', icon: ICO.auditLog },
         ]},
