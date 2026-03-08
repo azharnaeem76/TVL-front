@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import Navbar from '@/components/Navbar';
-import { sendChatMessage, getChatSessions, getSessionMessages, isLoggedIn } from '@/lib/api';
+import { sendChatMessageStream, getChatSessions, getSessionMessages, deleteChatSession, isLoggedIn } from '@/lib/api';
 import VoiceSearch from '@/components/VoiceSearch';
 import { GavelSVG } from '@/components/CourtElements';
 
@@ -26,11 +26,13 @@ export default function ChatPage() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
+  const [streaming, setStreaming] = useState(false);
   const [sessionId, setSessionId] = useState<number | null>(null);
   const [citedCases, setCitedCases] = useState<CitedCase[]>([]);
   const [sessions, setSessions] = useState<any[]>([]);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const streamingContentRef = useRef('');
 
   useEffect(() => {
     if (isLoggedIn()) {
@@ -60,39 +62,66 @@ export default function ChatPage() {
 
   const handleSend = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!input.trim() || loading) return;
+    if (!input.trim() || loading || streaming) return;
 
     const userMessage = input.trim();
     setInput('');
     setMessages(prev => [...prev, { id: Date.now(), role: 'user', content: userMessage }]);
     setLoading(true);
+    setStreaming(true);
+    streamingContentRef.current = '';
+
+    // Add placeholder assistant message
+    const placeholderId = Date.now() + 1;
+    setMessages(prev => [...prev, { id: placeholderId, role: 'assistant', content: '' }]);
 
     try {
-      const response = await sendChatMessage(userMessage, sessionId || undefined);
-      setSessionId(response.session_id);
-      setMessages(prev => [...prev, {
-        id: response.message.id,
-        role: 'assistant',
-        content: response.message.content,
-        language: response.message.language,
-      }]);
-      if (response.cited_cases?.length) {
-        setCitedCases(prev => {
-          const existing = new Set(prev.map(c => c.id));
-          const newCases = response.cited_cases.filter((c: CitedCase) => !existing.has(c.id));
-          return [...prev, ...newCases];
-        });
-      }
-      // Refresh sessions list
-      getChatSessions().then(setSessions).catch(() => {});
+      await sendChatMessageStream(
+        userMessage,
+        sessionId || undefined,
+        // onToken
+        (token) => {
+          setLoading(false);
+          streamingContentRef.current += token;
+          setMessages(prev =>
+            prev.map(m => m.id === placeholderId
+              ? { ...m, content: streamingContentRef.current }
+              : m
+            )
+          );
+        },
+        // onCitations
+        (cases) => {
+          if (cases?.length) {
+            setCitedCases(prev => {
+              const existing = new Set(prev.map(c => c.id));
+              const newCases = cases.filter((c: CitedCase) => !existing.has(c.id));
+              return [...prev, ...newCases];
+            });
+          }
+        },
+        // onDone
+        (data) => {
+          setSessionId(data.session_id);
+          setMessages(prev =>
+            prev.map(m => m.id === placeholderId
+              ? { ...m, id: data.message_id }
+              : m
+            )
+          );
+          getChatSessions().then(setSessions).catch(() => {});
+        },
+      );
     } catch (err: any) {
-      setMessages(prev => [...prev, {
-        id: Date.now(),
-        role: 'assistant',
-        content: `Error: ${err.message}. Make sure the backend server is running.`,
-      }]);
+      setMessages(prev =>
+        prev.map(m => m.id === placeholderId
+          ? { ...m, content: `Error: ${err.message}. Make sure the backend server is running.` }
+          : m
+        )
+      );
     } finally {
       setLoading(false);
+      setStreaming(false);
     }
   };
 
@@ -108,6 +137,22 @@ export default function ChatPage() {
     }
   };
 
+  const handleDeleteSession = async (id: number, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!confirm('Delete this chat session?')) return;
+    try {
+      await deleteChatSession(id);
+      setSessions(prev => prev.filter(s => s.id !== id));
+      if (sessionId === id) {
+        setMessages([]);
+        setSessionId(null);
+        setCitedCases([]);
+      }
+    } catch (err) {
+      console.error('Failed to delete session');
+    }
+  };
+
   const newChat = () => {
     setMessages([]);
     setSessionId(null);
@@ -118,7 +163,7 @@ export default function ChatPage() {
     <div className="min-h-screen bg-navy-950 noise flex flex-col">
       <Navbar />
       <div className="flex flex-1 overflow-hidden pt-16 max-w-[1400px] mx-auto w-full">
-        {/* Sessions Sidebar — History */}
+        {/* Sessions Sidebar */}
         <div className={`fixed lg:relative inset-y-0 left-0 z-40 w-72 bg-navy-950/95 lg:bg-transparent backdrop-blur-xl lg:backdrop-blur-none border-r border-brass-400/10 p-4 pt-20 lg:pt-4 overflow-y-auto transition-transform duration-300 lg:translate-x-0 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
           <button onClick={newChat} className="btn-primary w-full mb-4 text-sm !py-2.5">
             + New Session
@@ -127,22 +172,31 @@ export default function ChatPage() {
           <h3 className="text-xs font-display font-semibold text-brass-400/50 uppercase tracking-wider mb-3">Chat History</h3>
           <div className="space-y-1">
             {sessions.map(s => (
-              <button
+              <div
                 key={s.id}
                 onClick={() => loadSession(s.id)}
-                className={`w-full text-left p-3 rounded-xl text-sm truncate transition-all duration-300 ${
+                className={`group w-full text-left p-3 rounded-xl text-sm truncate transition-all duration-300 cursor-pointer flex items-center justify-between ${
                   sessionId === s.id
                     ? 'bg-brass-400/10 text-brass-300 border border-brass-400/20'
                     : 'text-gray-400 hover:bg-white/[0.04] hover:text-brass-300'
                 }`}
               >
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 min-w-0 flex-1">
                   <svg className="w-3.5 h-3.5 flex-shrink-0 text-brass-400/40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
                   </svg>
                   <span className="truncate">{s.title || 'Untitled Session'}</span>
                 </div>
-              </button>
+                <button
+                  onClick={(e) => handleDeleteSession(s.id, e)}
+                  className="flex-shrink-0 p-1 rounded hover:bg-red-500/20 text-gray-500 hover:text-red-400 transition-all lg:opacity-0 lg:group-hover:opacity-100"
+                  title="Delete session"
+                >
+                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                  </svg>
+                </button>
+              </div>
             ))}
             {sessions.length === 0 && (
               <p className="text-xs text-gray-600 px-3 italic">No chat history yet</p>
@@ -208,11 +262,14 @@ export default function ChatPage() {
                     </div>
                   )}
                   <div className="prose text-sm whitespace-pre-wrap leading-relaxed">{msg.content}</div>
+                  {msg.role === 'assistant' && streaming && msg.content && msg.id === messages[messages.length - 1]?.id && (
+                    <span className="inline-block w-2 h-4 bg-brass-400 animate-pulse ml-0.5" />
+                  )}
                 </div>
               </div>
             ))}
 
-            {loading && (
+            {loading && !messages[messages.length - 1]?.content && (
               <div className="flex justify-start">
                 <div className="court-panel rounded-2xl rounded-bl-md px-5 py-4">
                   <div className="flex items-center gap-3">
@@ -238,10 +295,10 @@ export default function ChatPage() {
                 onChange={(e) => setInput(e.target.value)}
                 placeholder="Ask a legal question... (English, Urdu, Roman Urdu)"
                 className="input-field flex-1 !border-brass-400/10 focus:!border-brass-400/30"
-                disabled={loading}
+                disabled={loading || streaming}
               />
               <VoiceSearch onResult={(text) => setInput(prev => prev ? prev + ' ' + text : text)} />
-              <button type="submit" disabled={loading || !input.trim()} className="btn-primary !px-6">
+              <button type="submit" disabled={loading || streaming || !input.trim()} className="btn-primary !px-6">
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
                 </svg>

@@ -18,7 +18,13 @@ async function request(path: string, options: RequestInit = {}) {
   const res = await fetch(`${API_BASE}${path}`, { ...options, headers });
   if (!res.ok) {
     if (res.status === 401 && typeof window !== 'undefined' && !path.startsWith('/auth/')) {
-      throw new Error('Session expired');
+      localStorage.removeItem('tvl_token');
+      localStorage.removeItem('tvl_user');
+      throw new Error('Session expired. Please log in again.');
+    }
+    if (res.status === 403) {
+      const error = await res.json().catch(() => ({ detail: 'Access denied' }));
+      throw new Error(error.detail || 'Access denied');
     }
     const error = await res.json().catch(() => ({ detail: 'Request failed' }));
     throw new Error(error.detail || 'Request failed');
@@ -112,6 +118,53 @@ export async function getChatSessions() {
 
 export async function getSessionMessages(sessionId: number) {
   return request(`/chat/sessions/${sessionId}/messages`);
+}
+
+export async function deleteChatSession(sessionId: number) {
+  return request(`/chat/sessions/${sessionId}`, { method: 'DELETE' });
+}
+
+export async function sendChatMessageStream(
+  message: string,
+  sessionId?: number,
+  onToken?: (token: string) => void,
+  onCitations?: (cases: any[]) => void,
+  onDone?: (data: { session_id: number; message_id: number }) => void,
+) {
+  const token = getToken();
+  const res = await fetch(`${API_BASE}/chat/message/stream`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+    body: JSON.stringify({ message, session_id: sessionId }),
+  });
+  if (!res.ok) {
+    const error = await res.json().catch(() => ({ detail: 'Request failed' }));
+    throw new Error(error.detail || 'Request failed');
+  }
+  const reader = res.body?.getReader();
+  if (!reader) throw new Error('No response body');
+  const decoder = new TextDecoder();
+  let buffer = '';
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    buffer += decoder.decode(value, { stream: true });
+    const lines = buffer.split('\n');
+    buffer = lines.pop() || '';
+    for (const line of lines) {
+      if (line.startsWith('data: ')) {
+        try {
+          const data = JSON.parse(line.slice(6));
+          if (data.type === 'token') onToken?.(data.content);
+          else if (data.type === 'citations') onCitations?.(data.cases);
+          else if (data.type === 'done') onDone?.(data);
+        } catch {}
+      }
+    }
+  }
 }
 
 // Legal Database

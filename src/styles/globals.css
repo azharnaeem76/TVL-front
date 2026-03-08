@@ -188,6 +188,15 @@
     @apply font-urdu text-right;
     direction: rtl;
   }
+
+  /* Enhanced Urdu text styling for readability */
+  .font-urdu {
+    font-size: 1.15em;
+    line-height: 2.2;
+    letter-spacing: 0.02em;
+    word-spacing: 0.15em;
+    color: #e2e8f0;
+  }
   .divider {
     @apply h-px bg-gradient-to-r from-transparent via-gold-400/15 to-transparent;
   }

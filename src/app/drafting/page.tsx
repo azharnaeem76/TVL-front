@@ -1295,6 +1295,664 @@ SWORN BEFORE ME on this [DAY] day of [MONTH], [YEAR].
                                             Oath Commissioner / Notary Public
                                             [NAME AND SEAL]`,
   },
+  // ===== ADDITIONAL CRIMINAL =====
+  {
+    id: 'fir_application',
+    title: 'Application for Registration of FIR',
+    category: 'Criminal',
+    icon: 'M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z',
+    content: `TO,
+The Station House Officer (SHO),
+Police Station [PS NAME],
+[DISTRICT]
+
+Subject: Application for Registration of FIR Under Section [SECTION NUMBER] PPC
+
+Respected Sir,
+
+I, [COMPLAINANT NAME], Son/Daughter of [FATHER NAME], CNIC No. [CNIC], resident of [ADDRESS], respectfully submit as under:
+
+1. That on [DATE] at about [TIME], at [PLACE OF OCCURRENCE], the following incident took place:
+
+[DESCRIBE THE INCIDENT IN DETAIL]
+
+2. That the accused persons are:
+   (i)  [ACCUSED 1 NAME], Son of [FATHER NAME], resident of [ADDRESS]
+   (ii) [ACCUSED 2 NAME], Son of [FATHER NAME], resident of [ADDRESS]
+
+3. That the following offences have been committed:
+   [LIST APPLICABLE SECTIONS OF PPC/OTHER LAWS]
+
+4. That the following witnesses were present:
+   (i)  [WITNESS 1 NAME AND ADDRESS]
+   (ii) [WITNESS 2 NAME AND ADDRESS]
+
+5. That [ANY INJURIES/LOSSES SUFFERED]
+
+It is therefore most respectfully requested that an FIR may kindly be registered against the above-named accused persons under the relevant sections of law and investigation may be conducted.
+
+Dated: [DATE]
+Place: [CITY]
+
+                                            ________________________
+                                            Complainant
+                                            [COMPLAINANT NAME]
+                                            CNIC: [CNIC]`,
+  },
+  {
+    id: 'bail_cancellation',
+    title: 'Application for Cancellation of Bail',
+    category: 'Criminal',
+    icon: 'M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636',
+    content: `IN THE COURT OF [SESSIONS JUDGE / ADDITIONAL SESSIONS JUDGE]
+[DISTRICT NAME]
+
+Criminal Miscellaneous No. _______ of [YEAR]
+
+FIR No. [FIR NUMBER]
+Under Sections [SECTIONS] PPC
+Police Station [PS NAME], [DISTRICT]
+
+IN THE MATTER OF:
+
+The State through [COMPLAINANT NAME]
+                                                    ... Complainant/Petitioner
+
+                        VERSUS
+
+[ACCUSED NAME]
+Son of [FATHER NAME]
+Resident of [ADDRESS]
+                                                    ... Respondent/Accused
+
+APPLICATION FOR CANCELLATION OF BAIL
+Under Section 497(5) Cr.P.C.
+
+Most Respectfully Showeth:
+
+1. That the respondent/accused was granted bail by this Honourable Court vide order dated [DATE] in Cr. Misc. No. [NUMBER]/[YEAR].
+
+2. That subsequent to the grant of bail, the respondent/accused has:
+   (a) [STATE GROUNDS - e.g., threatened witnesses]
+   (b) [STATE GROUNDS - e.g., tampered with evidence]
+   (c) [STATE GROUNDS - e.g., absconded/violated bail conditions]
+
+3. That the continuation of bail is prejudicial to the fair trial and administration of justice.
+
+PRAYER:
+
+It is, therefore, most respectfully prayed that the bail already granted to the respondent/accused may graciously be cancelled in the interest of justice.
+
+Dated: [DATE]
+Place: [CITY]
+
+                                            ________________________
+                                            Advocate for Complainant
+                                            [ADVOCATE NAME]
+                                            License No. [LICENSE NO]`,
+  },
+  {
+    id: 'section_22a_application',
+    title: 'Application u/s 22-A/22-B CrPC',
+    category: 'Criminal',
+    icon: 'M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126z',
+    content: `IN THE COURT OF [SESSIONS JUDGE / EX-OFFICIO JUSTICE OF PEACE]
+[DISTRICT NAME]
+
+Criminal Miscellaneous No. _______ of [YEAR]
+
+IN THE MATTER OF:
+
+[APPLICANT NAME]
+Son/Daughter of [FATHER NAME]
+CNIC No. [CNIC]
+Resident of [ADDRESS]
+                                                    ... Applicant
+
+APPLICATION UNDER SECTION 22-A/22-B Cr.P.C.
+(For Direction to SHO to Register FIR)
+
+Most Respectfully Showeth:
+
+1. That the applicant approached Police Station [PS NAME], [DISTRICT] on [DATE] for registration of FIR in respect of the following cognizable offence:
+
+   [DESCRIBE THE OFFENCE]
+
+2. That the SHO/Police concerned refused to register the FIR without any lawful justification.
+
+3. That the applicant has a legal right to get the FIR registered as the offence is cognizable and the police are duty-bound under Section 154 Cr.P.C.
+
+4. That the refusal of the police to register the FIR is illegal and against the mandate of law.
+
+PRAYER:
+
+It is therefore most respectfully prayed that the learned Justice of Peace may graciously be pleased to direct the SHO, Police Station [PS NAME] to register the FIR of the applicant under the relevant sections of law.
+
+Dated: [DATE]
+Place: [CITY]
+
+                                            ________________________
+                                            Advocate for Applicant
+                                            [ADVOCATE NAME]`,
+  },
+  // ===== ADDITIONAL CIVIL =====
+  {
+    id: 'suit_recovery',
+    title: 'Suit for Recovery of Money',
+    category: 'Civil',
+    icon: 'M2.25 18.75a60.07 60.07 0 0115.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5v.75A.75.75 0 013 6h-.75m0 0v-.375c0-.621.504-1.125 1.125-1.125H20.25M2.25 6v9m18-10.5v.75c0 .414.336.75.75.75h.75m-1.5-1.5h.375c.621 0 1.125.504 1.125 1.125v9.75c0 .621-.504 1.125-1.125 1.125h-.375m1.5-1.5H21a.75.75 0 00-.75.75v.75m0 0H3.75m0 0h-.375a1.125 1.125 0 01-1.125-1.125V15m1.5 1.5v-.75A.75.75 0 003 15h-.75M15 10.5a3 3 0 11-6 0 3 3 0 016 0zm3 0h.008v.008H18V10.5zm-12 0h.008v.008H6V10.5z',
+    content: `IN THE COURT OF [CIVIL JUDGE / SENIOR CIVIL JUDGE]
+[DISTRICT NAME]
+
+Civil Suit No. _______ of [YEAR]
+
+[PLAINTIFF NAME]
+Son/Daughter of [FATHER NAME]
+CNIC No. [CNIC]
+Resident of [ADDRESS]
+                                                    ... Plaintiff
+
+                        VERSUS
+
+[DEFENDANT NAME]
+Son/Daughter of [FATHER NAME]
+Resident of [ADDRESS]
+                                                    ... Defendant
+
+SUIT FOR RECOVERY OF RS. [AMOUNT]/- WITH INTEREST
+
+The plaintiff above-named most respectfully submits as under:
+
+1. That the plaintiff is a resident of [ADDRESS] and the defendant is a resident of [ADDRESS]. This Honourable Court has territorial and pecuniary jurisdiction to try and decide this suit.
+
+2. That the defendant borrowed/is liable to pay a sum of Rs. [AMOUNT]/- (Rupees [AMOUNT IN WORDS] only) to the plaintiff on account of [STATE CAUSE - loan/services/goods/damages].
+
+3. That the said amount was due and payable on [DUE DATE].
+
+4. That despite repeated demands and a legal notice dated [DATE], the defendant has failed and refused to pay the outstanding amount.
+
+5. That the plaintiff is entitled to recover the said amount along with [INTEREST RATE]% interest from [DATE] till realization.
+
+6. That the cause of action arose on [DATE] when the defendant failed to make payment.
+
+7. That the suit is within limitation.
+
+PRAYER:
+
+In the light of above facts and circumstances, it is most respectfully prayed that a decree for recovery of Rs. [AMOUNT]/- along with [INTEREST]% interest per annum from [DATE] till realization may graciously be passed in favour of the plaintiff and against the defendant, with costs of the suit.
+
+Any other relief which this Honourable Court deems fit and proper may also be granted.
+
+Dated: [DATE]
+Place: [CITY]
+
+                                            ________________________
+                                            Advocate for Plaintiff
+                                            [ADVOCATE NAME]
+
+VERIFICATION:
+I, [PLAINTIFF NAME], do hereby verify that the contents of paragraphs 1 to 7 are true and correct to the best of my knowledge and belief.
+
+                                            ________________________
+                                            Plaintiff`,
+  },
+  {
+    id: 'temporary_injunction',
+    title: 'Application for Temporary Injunction (O.XXXIX R.1&2 CPC)',
+    category: 'Civil',
+    icon: 'M12 9v3.75m0-10.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z',
+    content: `IN THE COURT OF [CIVIL JUDGE / SENIOR CIVIL JUDGE]
+[DISTRICT NAME]
+
+Civil Suit No. _______ of [YEAR]
+
+[PLAINTIFF NAME]
+                                                    ... Plaintiff/Applicant
+                        VERSUS
+[DEFENDANT NAME]
+                                                    ... Defendant/Respondent
+
+APPLICATION UNDER ORDER XXXIX RULES 1 & 2 C.P.C.
+(For Grant of Temporary Injunction)
+
+Most Respectfully Showeth:
+
+1. That the applicant/plaintiff has filed the above captioned suit for [NATURE OF SUIT].
+
+2. That the applicant has a prima facie case in his/her favour as [BRIEFLY STATE THE CASE].
+
+3. That if the temporary injunction is not granted, the applicant shall suffer irreparable loss and injury which cannot be compensated in terms of money.
+
+4. That the balance of convenience lies in favour of the applicant.
+
+5. That the respondent/defendant is likely to [STATE THE APPREHENDED ACT - e.g., alienate the property / destroy evidence / cause damage].
+
+PRAYER:
+
+It is therefore most respectfully prayed that pending the decision of the suit, the respondent/defendant may be restrained through an order of temporary injunction from [STATE SPECIFIC ACT TO BE RESTRAINED].
+
+Dated: [DATE]
+
+                                            ________________________
+                                            Advocate for Plaintiff`,
+  },
+  {
+    id: 'written_statement',
+    title: 'Written Statement (Defence in Civil Suit)',
+    category: 'Civil',
+    icon: 'M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z',
+    content: `IN THE COURT OF [CIVIL JUDGE / SENIOR CIVIL JUDGE]
+[DISTRICT NAME]
+
+Civil Suit No. _______ of [YEAR]
+
+[PLAINTIFF NAME]
+                                                    ... Plaintiff
+                        VERSUS
+[DEFENDANT NAME]
+                                                    ... Defendant
+
+WRITTEN STATEMENT ON BEHALF OF THE DEFENDANT
+
+Most Respectfully Showeth:
+
+PRELIMINARY OBJECTIONS:
+
+(i)   That the suit is not maintainable in the present form.
+(ii)  That this Honourable Court lacks [territorial/pecuniary] jurisdiction.
+(iii) That the suit is barred by limitation under [RELEVANT ARTICLE OF LIMITATION ACT].
+(iv)  That the suit is bad for non-joinder/mis-joinder of necessary parties.
+
+REPLY ON MERITS (Para-wise):
+
+1. Para 1 of the plaint is [admitted/denied/not admitted]. [STATE RESPONSE]
+
+2. Para 2 of the plaint is [admitted/denied/not admitted]. [STATE RESPONSE]
+
+3. Para 3 of the plaint is [admitted/denied/not admitted]. [STATE RESPONSE]
+
+4. [CONTINUE FOR REMAINING PARAGRAPHS]
+
+ADDITIONAL PLEAS:
+
+(a) That [STATE ANY ADDITIONAL DEFENCE]
+(b) That [STATE ANY COUNTER CLAIM]
+
+PRAYER:
+
+In the light of above submissions, it is most respectfully prayed that the suit of the plaintiff may kindly be dismissed with costs.
+
+Dated: [DATE]
+
+                                            ________________________
+                                            Advocate for Defendant
+                                            [ADVOCATE NAME]
+
+VERIFICATION:
+I, [DEFENDANT NAME], do hereby verify that the contents of the above Written Statement are true and correct to my knowledge and belief.
+
+                                            ________________________
+                                            Defendant`,
+  },
+  // ===== ADDITIONAL FAMILY =====
+  {
+    id: 'maintenance_suit',
+    title: 'Suit for Recovery of Maintenance (Nafaqa)',
+    category: 'Family',
+    icon: 'M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z',
+    content: `IN THE COURT OF [JUDGE FAMILY COURT]
+[DISTRICT NAME]
+
+Family Suit No. _______ of [YEAR]
+
+[PLAINTIFF NAME] (Wife/Minor through Guardian)
+Daughter/Son of [FATHER NAME]
+Resident of [ADDRESS]
+                                                    ... Plaintiff
+
+                        VERSUS
+
+[DEFENDANT NAME] (Husband/Father)
+Son of [FATHER NAME]
+Resident of [ADDRESS]
+                                                    ... Defendant
+
+SUIT FOR RECOVERY OF MAINTENANCE (NAFAQA)
+Under Section 9 of the West Pakistan Family Courts Act, 1964
+
+Most Respectfully Showeth:
+
+1. That the plaintiff is the [wife/minor child] of the defendant.
+
+2. That the marriage between the plaintiff and defendant was solemnized on [DATE] at [PLACE] as per Muslim Rites. The Nikah was registered with the concerned Nikah Registrar bearing Nikah Nama No. [NUMBER].
+
+3. That out of the said wedlock, [NUMBER] children were born namely:
+   (i)  [CHILD NAME], aged [AGE] years
+   (ii) [CHILD NAME], aged [AGE] years
+
+4. That the defendant has failed/refused to provide maintenance to the plaintiff [and minor children] since [DATE].
+
+5. That the defendant is a person of means and earns approximately Rs. [AMOUNT]/- per month from [SOURCE OF INCOME].
+
+6. That the plaintiff [and children] require Rs. [AMOUNT]/- per month for maintenance including food, clothing, shelter, education, and medical expenses.
+
+7. That the plaintiff has no independent source of income and is entirely dependent upon the defendant.
+
+PRAYER:
+
+It is therefore most respectfully prayed that:
+(a) A decree for maintenance @ Rs. [AMOUNT]/- per month may be passed in favour of the plaintiff [and minor children].
+(b) Past maintenance from [DATE] may also be allowed.
+(c) Costs of the suit may also be awarded.
+
+Dated: [DATE]
+
+                                            ________________________
+                                            Advocate for Plaintiff`,
+  },
+  {
+    id: 'guardianship_petition',
+    title: 'Petition for Guardianship of Minor',
+    category: 'Family',
+    icon: 'M18 18.72a9.094 9.094 0 003.741-.479 3 3 0 00-4.682-2.72m.94 3.198l.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0112 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 016 18.719m12 0a5.971 5.971 0 00-.941-3.197m0 0A5.995 5.995 0 0012 12.75a5.995 5.995 0 00-5.058 2.772m0 0a3 3 0 00-4.681 2.72 8.986 8.986 0 003.74.477m.94-3.197a5.971 5.971 0 00-.94 3.197M15 6.75a3 3 0 11-6 0 3 3 0 016 0zm6 3a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0zm-13.5 0a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0z',
+    content: `IN THE COURT OF [GUARDIAN JUDGE]
+[DISTRICT NAME]
+
+Guardianship Petition No. _______ of [YEAR]
+
+IN THE MATTER OF:
+
+[PETITIONER NAME]
+[Relationship to Minor]
+Resident of [ADDRESS]
+                                                    ... Petitioner
+
+PETITION UNDER SECTION 7 OF THE GUARDIANS AND WARDS ACT, 1890
+For Appointment as Guardian of Person and Property of Minor
+
+Most Respectfully Showeth:
+
+1. That the minor [MINOR NAME], Son/Daughter of [FATHER NAME], was born on [DATE OF BIRTH] and is presently aged [AGE] years.
+
+2. That the natural father of the minor, namely [FATHER NAME], has [died/abandoned the minor/is incapable due to...].
+
+3. That the minor is currently residing with the petitioner at [ADDRESS].
+
+4. That the petitioner is the [RELATIONSHIP] of the minor and is a fit and proper person to be appointed as guardian.
+
+5. That the minor has the following property/assets:
+   [DESCRIBE PROPERTY IF ANY, OR STATE "NO PROPERTY"]
+
+6. That it is in the best interest and welfare of the minor that the petitioner be appointed as guardian of the person [and property] of the said minor.
+
+7. That no previous application for guardianship of the said minor has been made to any court.
+
+PRAYER:
+
+It is therefore most respectfully prayed that the petitioner may be appointed as Guardian of the person [and property] of the minor [MINOR NAME].
+
+Dated: [DATE]
+
+                                            ________________________
+                                            Advocate for Petitioner`,
+  },
+  {
+    id: 'dower_recovery',
+    title: 'Suit for Recovery of Dower (Haq Mehr)',
+    category: 'Family',
+    icon: 'M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z',
+    content: `IN THE COURT OF [JUDGE FAMILY COURT]
+[DISTRICT NAME]
+
+Family Suit No. _______ of [YEAR]
+
+[WIFE NAME]
+Daughter of [FATHER NAME]
+Resident of [ADDRESS]
+                                                    ... Plaintiff
+
+                        VERSUS
+
+[HUSBAND NAME]
+Son of [FATHER NAME]
+Resident of [ADDRESS]
+                                                    ... Defendant
+
+SUIT FOR RECOVERY OF DOWER (HAQ MEHR)
+Under Section 9 of West Pakistan Family Courts Act, 1964
+
+Most Respectfully Showeth:
+
+1. That the marriage between the plaintiff and defendant was solemnized on [DATE] as per Muslim Rites.
+
+2. That the prompt dower (Haq Mehr-e-Muajjal) was fixed at Rs. [AMOUNT]/- [AND/OR deferred dower (Mehr-e-Muwajjal) was fixed at Rs. [AMOUNT]/-] as per Nikah Nama.
+
+3. That the defendant has failed to pay the dower amount despite repeated demands.
+
+4. That under Muslim Law, dower is a debt owed by the husband to the wife and is payable on demand.
+
+PRAYER:
+
+(a) A decree for recovery of Rs. [TOTAL AMOUNT]/- on account of dower (Haq Mehr) may be passed.
+(b) Costs of the suit may be awarded to the plaintiff.
+
+Dated: [DATE]
+
+                                            ________________________
+                                            Advocate for Plaintiff`,
+  },
+  // ===== PROPERTY =====
+  {
+    id: 'suit_possession',
+    title: 'Suit for Possession of Immovable Property',
+    category: 'Property',
+    icon: 'M8.25 21v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21m0 0h4.5V3.545M12.75 21h7.5V10.75M2.25 21h1.5m18 0h-18M2.25 9l4.5-1.636M18.75 3l-1.5.545m0 6.205l3 1m1.5.5l-1.5-.5M6.75 7.364V3h-3v18m3-13.636l10.5-3.819',
+    content: `IN THE COURT OF [CIVIL JUDGE / SENIOR CIVIL JUDGE]
+[DISTRICT NAME]
+
+Civil Suit No. _______ of [YEAR]
+
+[PLAINTIFF NAME]
+Son/Daughter of [FATHER NAME]
+Resident of [ADDRESS]
+                                                    ... Plaintiff
+                        VERSUS
+[DEFENDANT NAME]
+Son/Daughter of [FATHER NAME]
+Resident of [ADDRESS]
+                                                    ... Defendant
+
+SUIT FOR POSSESSION OF IMMOVABLE PROPERTY
+
+Most Respectfully Showeth:
+
+1. That the plaintiff is the lawful owner of the property described in the Schedule below.
+
+2. That the plaintiff acquired the said property by virtue of [sale deed/inheritance/gift deed/partition] dated [DATE], registered with [SUB-REGISTRAR OFFICE].
+
+3. That the defendant has illegally occupied/taken possession of the said property on [DATE] without any right, title, or authority.
+
+4. That the plaintiff has demanded the defendant to vacate the property, but the defendant has refused to do so.
+
+5. That a legal notice dated [DATE] was also served upon the defendant, but to no avail.
+
+SCHEDULE OF PROPERTY:
+
+[DESCRIPTION OF PROPERTY - Khasra No., Khata No., Area, Location, Boundaries - North, South, East, West]
+
+PRAYER:
+
+(a) A decree for possession of the suit property may be passed in favour of the plaintiff.
+(b) The defendant may be restrained from alienating or causing damage to the property.
+(c) Costs of the suit may be awarded.
+(d) Any other relief deemed fit may also be granted.
+
+Dated: [DATE]
+
+                                            ________________________
+                                            Advocate for Plaintiff`,
+  },
+  {
+    id: 'suit_preemption',
+    title: 'Suit for Pre-emption (Shuf\'a)',
+    category: 'Property',
+    icon: 'M7.5 21L3 16.5m0 0L7.5 12M3 16.5h13.5m0-13.5L21 7.5m0 0L16.5 12M21 7.5H7.5',
+    content: `IN THE COURT OF [CIVIL JUDGE / SENIOR CIVIL JUDGE]
+[DISTRICT NAME]
+
+Civil Suit No. _______ of [YEAR]
+
+[PLAINTIFF NAME]
+Son/Daughter of [FATHER NAME]
+Resident of [ADDRESS]
+                                                    ... Plaintiff (Pre-emptor)
+                        VERSUS
+1. [VENDEE NAME] (Purchaser)
+2. [VENDOR NAME] (Seller)
+                                                    ... Defendants
+
+SUIT FOR PRE-EMPTION (SHUF'A)
+Under the Punjab Pre-emption Act, 1991
+
+Most Respectfully Showeth:
+
+1. That the defendant No. 2 (vendor) was the owner of property bearing [KHASRA/KHATA NO.], measuring [AREA], situated at [LOCATION].
+
+2. That the defendant No. 2 sold the said property to defendant No. 1 on [DATE] for a consideration of Rs. [AMOUNT]/-.
+
+3. That the plaintiff is a [CO-sharer/Adjoining owner] of the property and has a superior right of pre-emption under Section [4/6] of the Punjab Pre-emption Act, 1991.
+
+4. That the plaintiff came to know about the sale on [DATE].
+
+5. That the plaintiff performed TALB-I-MUWASIBAT (demand by immediate jumping up) on [DATE] by declaring his intention to pre-empt in the presence of [WITNESS NAMES].
+
+6. That the plaintiff performed TALB-I-ISHHAD (demand by attestation) on [DATE] in the presence of two witnesses.
+
+7. That the plaintiff has deposited the sale consideration of Rs. [AMOUNT]/- with this Honourable Court.
+
+PRAYER:
+
+(a) A decree for pre-emption in respect of the suit property may be passed.
+(b) The sale deed dated [DATE] may be substituted in favour of the plaintiff.
+(c) Costs of suit may be awarded.
+
+Dated: [DATE]
+
+                                            ________________________
+                                            Advocate for Plaintiff`,
+  },
+  // ===== LABOR =====
+  {
+    id: 'labor_court_complaint',
+    title: 'Complaint Before Labour Court',
+    category: 'Labor',
+    icon: 'M20.25 14.15v4.25c0 1.094-.787 2.036-1.872 2.18-2.087.277-4.216.42-6.378.42s-4.291-.143-6.378-.42c-1.085-.144-1.872-1.086-1.872-2.18v-4.25m16.5 0a2.18 2.18 0 00.75-1.661V8.706c0-1.081-.768-2.015-1.837-2.175a48.114 48.114 0 00-3.413-.387m4.5 8.006c-.194.165-.42.295-.673.38A23.978 23.978 0 0112 15.75c-2.648 0-5.195-.429-7.577-1.22a2.016 2.016 0 01-.673-.38m0 0A2.18 2.18 0 013 12.489V8.706c0-1.081.768-2.015 1.837-2.175a48.111 48.111 0 013.413-.387m7.5 0V5.25A2.25 2.25 0 0013.5 3h-3a2.25 2.25 0 00-2.25 2.25v.894m7.5 0a48.667 48.667 0 00-7.5 0M12 12.75h.008v.008H12v-.008z',
+    content: `IN THE LABOUR COURT [NO.]
+[DISTRICT NAME]
+
+Grievance Petition No. _______ of [YEAR]
+
+[WORKER NAME]
+Son/Daughter of [FATHER NAME]
+CNIC No. [CNIC]
+Employee/Ex-Employee of [EMPLOYER NAME]
+                                                    ... Petitioner/Workman
+
+                        VERSUS
+
+[EMPLOYER NAME / COMPANY NAME]
+Through [MANAGING DIRECTOR/OWNER]
+Address: [ADDRESS]
+                                                    ... Respondent/Employer
+
+GRIEVANCE PETITION
+Under Section 33-A of the Industrial Relations Act, 2012
+
+Most Respectfully Showeth:
+
+1. That the petitioner was employed with the respondent as [DESIGNATION] w.e.f. [JOINING DATE] at a monthly salary of Rs. [SALARY]/-.
+
+2. That the petitioner performed his/her duties diligently and faithfully throughout the period of employment.
+
+3. That on [DATE], the respondent illegally [terminated/dismissed/retrenched] the petitioner without:
+   (a) Any show cause notice
+   (b) Any domestic inquiry
+   (c) Any reasonable cause
+   (d) Due compliance with Standing Orders/Service Rules
+
+4. That the termination/dismissal is in violation of [Section ____ of the Industrial and Commercial Employment (Standing Orders) Ordinance, 1968 / relevant law].
+
+5. That the petitioner is entitled to reinstatement with back wages and all other benefits.
+
+PRAYER:
+
+(a) The termination order dated [DATE] may be declared illegal, void, and of no effect.
+(b) The petitioner may be reinstated with full back wages from the date of termination.
+(c) All benefits including increments, promotions, and seniority may be restored.
+(d) Costs may be awarded.
+
+Dated: [DATE]
+
+                                            ________________________
+                                            Advocate for Petitioner`,
+  },
+  // ===== CONSTITUTIONAL =====
+  {
+    id: 'writ_petition_199',
+    title: 'Constitutional Petition (Art. 199)',
+    category: 'Constitutional',
+    icon: 'M12 21v-8.25M15.75 21v-8.25M8.25 21v-8.25M3 9l9-6 9 6m-1.5 12V10.332A48.36 48.36 0 0012 9.75c-2.551 0-5.056.2-7.5.582V21M3 21h18M12 6.75h.008v.008H12V6.75z',
+    content: `IN THE [LAHORE/SINDH/PESHAWAR/BALOCHISTAN/ISLAMABAD] HIGH COURT
+[BENCH NAME]
+
+Writ Petition No. _______ of [YEAR]
+
+[PETITIONER NAME]
+Son/Daughter of [FATHER NAME]
+CNIC No. [CNIC]
+Resident of [ADDRESS]
+                                                    ... Petitioner
+
+                        VERSUS
+
+1. [GOVERNMENT AUTHORITY/DEPARTMENT]
+   Through its [Secretary/Director/Commissioner]
+2. [OTHER RESPONDENT IF ANY]
+                                                    ... Respondents
+
+CONSTITUTIONAL PETITION UNDER ARTICLE 199 OF THE CONSTITUTION
+OF THE ISLAMIC REPUBLIC OF PAKISTAN, 1973
+
+Most Respectfully Showeth:
+
+1. That the petitioner is a citizen of Pakistan and is aggrieved by the illegal/unconstitutional action/inaction of the respondents.
+
+2. That the facts giving rise to this petition are:
+   [STATE FACTS IN DETAIL]
+
+3. That the impugned action/order dated [DATE] is:
+   (a) Without lawful authority and jurisdiction
+   (b) In violation of Article [ARTICLE NUMBER] of the Constitution
+   (c) Contrary to the principles of natural justice
+   (d) Arbitrary, mala fide, and unreasonable
+
+4. That no other adequate remedy is available to the petitioner except this constitutional petition.
+
+5. That no earlier petition on the same cause of action has been filed before any court.
+
+PRAYER:
+
+(a) The impugned [order/action/notification] dated [DATE] may be declared unlawful/unconstitutional and set aside.
+(b) The respondents may be directed to [STATE SPECIFIC RELIEF].
+(c) Any other relief deemed appropriate may also be granted.
+
+Dated: [DATE]
+
+                                            ________________________
+                                            Advocate for Petitioner
+                                            [ADVOCATE NAME]
+                                            License No. [LICENSE NO]`,
+  },
 ];
 
 const DRAFT_STORAGE_KEY = 'tvl_draft_documents';

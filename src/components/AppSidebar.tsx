@@ -165,6 +165,7 @@ function getSidebarLinks(role: string): { section: string; links: SidebarLink[] 
           { href: '/news', label: 'Legal News', icon: ICO.news },
           { href: '/directory', label: 'Directory', icon: ICO.directory },
           { href: '/forum', label: 'Community Forum', icon: ICO.forum },
+          { href: '/team-workspaces', label: 'Team Workspaces', icon: ICO.team },
         ]},
         { section: 'Account', links: [
           { href: '/documents', label: 'Document Analysis', icon: ICO.documents },
@@ -196,7 +197,9 @@ function getSidebarLinks(role: string): { section: string; links: SidebarLink[] 
           { href: '/ai-summarizer', label: 'AI Summarizer', icon: ICO.aiTool },
           { href: '/drafting', label: 'Draft Documents', icon: ICO.drafting },
           { href: '/forum', label: 'Community Forum', icon: ICO.forum },
+          { href: '/team-workspaces', label: 'Team Workspaces', icon: ICO.team },
           { href: '/bookmarks', label: 'Bookmarks', icon: ICO.bookmarks },
+          { href: '/notifications', label: 'Notifications', icon: ICO.notifications },
           { href: '/support', label: 'Help & Support', icon: ICO.support },
           { href: '/settings', label: 'Settings', icon: ICO.settings },
         ]},

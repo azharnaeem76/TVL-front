@@ -145,7 +145,7 @@ export default function CaseLawDetailPage() {
           {caseLaw.summary_ur && (
             <div className="court-panel p-6">
               <h2 className="text-lg font-display font-semibold text-brass-300 mb-3">خلاصہ (Urdu)</h2>
-              <p className="text-gray-300 leading-relaxed font-urdu text-right whitespace-pre-wrap" dir="rtl">{caseLaw.summary_ur}</p>
+              <p className="font-urdu text-right whitespace-pre-wrap" dir="rtl">{caseLaw.summary_ur}</p>
             </div>
           )}
 
@@ -170,7 +170,11 @@ export default function CaseLawDetailPage() {
           {caseLaw.relevant_statutes && (
             <div className="court-panel p-6">
               <h2 className="text-lg font-display font-semibold text-brass-300 mb-3">Relevant Statutes</h2>
-              <p className="text-gray-300 leading-relaxed whitespace-pre-wrap">{caseLaw.relevant_statutes}</p>
+              <div className="flex flex-wrap gap-2">
+                {caseLaw.relevant_statutes.split(/[,;\n]/).filter(Boolean).map((s, i) => (
+                  <span key={i} className="badge bg-brass-400/10 text-brass-300 border-brass-400/20 text-sm px-3 py-1">{s.trim()}</span>
+                ))}
+              </div>
             </div>
           )}
 

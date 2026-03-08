@@ -32,6 +32,8 @@ export default function CaseLawsPage() {
   const [loadingMore, setLoadingMore] = useState(false);
   const [search, setSearch] = useState('');
   const [category, setCategory] = useState('');
+  const [court, setCourt] = useState('');
+  const [year, setYear] = useState('');
   const [expanded, setExpanded] = useState<number | null>(null);
   const [readingCase, setReadingCase] = useState<CaseLaw | null>(null);
   const [page, setPage] = useState(0);
@@ -44,7 +46,7 @@ export default function CaseLawsPage() {
     setPage(0);
     setHasMore(true);
     loadCaseLaws(0, true);
-  }, [category]);
+  }, [category, court]);
 
   const loadCaseLaws = async (pageNum: number, reset = false) => {
     if (reset) setLoading(true);
@@ -52,6 +54,8 @@ export default function CaseLawsPage() {
     try {
       const data = await getCaseLaws({
         category: category || undefined,
+        court: court || undefined,
+        year: year ? parseInt(year) : undefined,
         search: search || undefined,
         limit: PAGE_SIZE,
         skip: pageNum * PAGE_SIZE,
@@ -116,32 +120,73 @@ export default function CaseLawsPage() {
 
         {/* Filters */}
         <div className="court-panel p-4 sm:p-6 mb-8">
-          <div className="flex flex-col sm:flex-row gap-3">
-            <div className="flex-1 flex gap-2">
+          <div className="flex flex-col gap-3">
+            <div className="flex flex-col sm:flex-row gap-3">
+              <div className="flex-1 flex gap-2">
+                <input
+                  type="text"
+                  placeholder="Search by title, citation, or section..."
+                  className="input-field flex-1 !border-brass-400/10 focus:!border-brass-400/30"
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  onKeyDown={(e) => { if (e.key === 'Enter') { setCaseLaws([]); setPage(0); setHasMore(true); loadCaseLaws(0, true); } }}
+                />
+                <VoiceSearch onResult={(text) => setSearch(text)} />
+              </div>
+              <button onClick={() => { setCaseLaws([]); setPage(0); setHasMore(true); loadCaseLaws(0, true); }} className="btn-primary !py-2.5">Search</button>
+            </div>
+            <div className="flex flex-col sm:flex-row gap-3">
+              <select value={category} onChange={(e) => setCategory(e.target.value)} className="input-field sm:w-44 !border-brass-400/10">
+                <option value="">All Categories</option>
+                <option value="criminal">Criminal</option>
+                <option value="civil">Civil</option>
+                <option value="family">Family</option>
+                <option value="property">Property</option>
+                <option value="constitutional">Constitutional</option>
+                <option value="corporate">Corporate</option>
+                <option value="cyber">Cyber Crime</option>
+                <option value="banking">Banking</option>
+                <option value="taxation">Taxation</option>
+                <option value="islamic">Islamic Law</option>
+                <option value="labor">Labor</option>
+                <option value="human_rights">Human Rights</option>
+                <option value="environmental">Environmental</option>
+                <option value="intellectual_property">Intellectual Property</option>
+              </select>
+              <select value={court} onChange={(e) => setCourt(e.target.value)} className="input-field sm:w-52 !border-brass-400/10">
+                <option value="">All Courts</option>
+                <option value="supreme_court">Supreme Court</option>
+                <option value="federal_shariat_court">Federal Shariat Court</option>
+                <option value="lahore_high_court">Lahore High Court</option>
+                <option value="sindh_high_court">Sindh High Court</option>
+                <option value="peshawar_high_court">Peshawar High Court</option>
+                <option value="balochistan_high_court">Balochistan High Court</option>
+                <option value="islamabad_high_court">Islamabad High Court</option>
+                <option value="district_court">District Court</option>
+                <option value="session_court">Session Court</option>
+                <option value="family_court">Family Court</option>
+                <option value="banking_court">Banking Court</option>
+                <option value="anti_terrorism_court">Anti-Terrorism Court</option>
+              </select>
               <input
-                type="text"
-                placeholder="Search by title or citation..."
-                className="input-field flex-1 !border-brass-400/10 focus:!border-brass-400/30"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
+                type="number"
+                placeholder="Year"
+                className="input-field sm:w-28 !border-brass-400/10 focus:!border-brass-400/30"
+                value={year}
+                onChange={(e) => setYear(e.target.value)}
+                min="1947"
+                max={new Date().getFullYear()}
                 onKeyDown={(e) => { if (e.key === 'Enter') { setCaseLaws([]); setPage(0); setHasMore(true); loadCaseLaws(0, true); } }}
               />
-              <VoiceSearch onResult={(text) => setSearch(text)} />
+              {(category || court || year || search) && (
+                <button
+                  onClick={() => { setCategory(''); setCourt(''); setYear(''); setSearch(''); setCaseLaws([]); setPage(0); setHasMore(true); setTimeout(() => loadCaseLaws(0, true), 0); }}
+                  className="text-xs text-gray-400 hover:text-brass-300 px-3 py-2 transition-colors"
+                >
+                  Clear Filters
+                </button>
+              )}
             </div>
-            <select value={category} onChange={(e) => setCategory(e.target.value)} className="input-field sm:w-48 !border-brass-400/10">
-              <option value="">All Categories</option>
-              <option value="criminal">Criminal</option>
-              <option value="family">Family</option>
-              <option value="property">Property</option>
-              <option value="constitutional">Constitutional</option>
-              <option value="cyber">Cyber Crime</option>
-              <option value="banking">Banking</option>
-              <option value="taxation">Taxation</option>
-              <option value="islamic">Islamic Law</option>
-              <option value="labor">Labor</option>
-              <option value="human_rights">Human Rights</option>
-            </select>
-            <button onClick={() => { setCaseLaws([]); setPage(0); setHasMore(true); loadCaseLaws(0, true); }} className="btn-primary !py-2.5">Search</button>
           </div>
         </div>
 
@@ -164,6 +209,20 @@ export default function CaseLawsPage() {
                       <span className="badge-court">{formatCourt(cl.court)}</span>
                       <span className="badge bg-white/[0.04] text-gray-400 border-white/[0.06]">{cl.category.replace(/_/g, ' ')}</span>
                       {cl.year && <span className="badge bg-white/[0.04] text-gray-400 border-white/[0.06]">{cl.year}</span>}
+                      {cl.sections_applied && (() => {
+                        try {
+                          const sections: string[] = JSON.parse(cl.sections_applied);
+                          // Extract statute abbreviations (PPC, CrPC, CPC, PECA, etc.)
+                          const statutes = new Set<string>();
+                          sections.forEach(s => {
+                            const match = s.match(/\b(PPC|CrPC|CPC|PECA|MFLO|NAB|ATA|TPA|NI Act|Qanun-e-Shahadat|Constitution)\b/i);
+                            if (match) statutes.add(match[1].toUpperCase());
+                          });
+                          return Array.from(statutes).map((st, i) => (
+                            <span key={i} className="badge bg-brass-400/10 text-brass-400 border-brass-400/20 text-[10px] font-mono">{st}</span>
+                          ));
+                        } catch { return null; }
+                      })()}
                     </div>
                   </div>
                   <div className="flex items-center gap-2 flex-shrink-0 ml-3">
@@ -203,9 +262,9 @@ export default function CaseLawsPage() {
                       </div>
                     )}
                     {cl.summary_ur && (
-                      <div>
-                        <strong className="text-brass-400/60">Summary (Urdu):</strong>
-                        <p className="mt-1 text-gray-300 font-urdu text-right leading-relaxed" dir="rtl">{cl.summary_ur}</p>
+                      <div className="mt-3 p-4 rounded-lg bg-white/[0.02] border border-brass-400/10">
+                        <strong className="text-brass-400/60">خلاصہ (Urdu):</strong>
+                        <p className="mt-2 font-urdu text-right whitespace-pre-wrap" dir="rtl">{cl.summary_ur}</p>
                       </div>
                     )}
                     {cl.headnotes && (
@@ -224,6 +283,22 @@ export default function CaseLawsPage() {
                         </div>
                       </div>
                     )}
+                    {cl.relevant_statutes && (
+                      <div>
+                        <strong className="text-brass-400/60">Relevant Statutes:</strong>
+                        <p className="mt-1 text-gray-300 leading-relaxed">{cl.relevant_statutes}</p>
+                      </div>
+                    )}
+                    <Link
+                      href={`/case-laws/${cl.id}`}
+                      onClick={(e) => e.stopPropagation()}
+                      className="inline-flex items-center gap-1 text-brass-400 hover:text-brass-300 text-xs mt-2 transition-colors"
+                    >
+                      View Full Details
+                      <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      </svg>
+                    </Link>
                   </div>
                 </div>
               </div>

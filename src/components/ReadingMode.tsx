@@ -78,7 +78,7 @@ export default function ReadingMode({
         {summaryUr && (
           <section className="mb-8">
             <h2 className="text-lg font-display font-semibold text-brass-300 mb-3">خلاصہ</h2>
-            <p className="text-gray-300 leading-relaxed font-urdu text-right whitespace-pre-wrap" dir="rtl">{summaryUr}</p>
+            <p className="font-urdu text-right whitespace-pre-wrap" dir="rtl">{summaryUr}</p>
           </section>
         )}
 

@@ -460,9 +460,9 @@ function SearchPage() {
                           </div>
                         )}
                         {cl.summary_ur && (
-                          <div>
-                            <h5 className="text-sm font-semibold text-brass-400/60 mb-1">Summary (Urdu)</h5>
-                            <p className="text-sm text-gray-300 font-urdu text-right leading-relaxed" dir="rtl">{cl.summary_ur}</p>
+                          <div className="p-3 rounded-lg bg-white/[0.02] border border-brass-400/10">
+                            <h5 className="text-sm font-semibold text-brass-400/60 mb-1">خلاصہ (Urdu)</h5>
+                            <p className="font-urdu text-right whitespace-pre-wrap" dir="rtl">{cl.summary_ur}</p>
                           </div>
                         )}
                         {cl.headnotes && (
