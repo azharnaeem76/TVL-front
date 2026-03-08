@@ -13,7 +13,23 @@ interface FeatureFlag {
   category: string;
   enabled: boolean;
   config: Record<string, any> | null;
+  applicable_roles: string[] | null;
 }
+
+const ROLE_LABELS: Record<string, string> = {
+  admin: 'Admin',
+  lawyer: 'Lawyer',
+  judge: 'Judge',
+  law_student: 'Student',
+  client: 'Client',
+};
+const ROLE_COLORS: Record<string, string> = {
+  admin: 'bg-red-400/15 text-red-400 border-red-400/20',
+  lawyer: 'bg-blue-400/15 text-blue-400 border-blue-400/20',
+  judge: 'bg-purple-400/15 text-purple-400 border-purple-400/20',
+  law_student: 'bg-orange-400/15 text-orange-400 border-orange-400/20',
+  client: 'bg-emerald-400/15 text-emerald-400 border-emerald-400/20',
+};
 
 const CATEGORIES = ['core', 'ai', 'collaboration', 'business', 'student', 'notifications'];
 const CATEGORY_LABELS: Record<string, string> = {
@@ -257,6 +273,21 @@ export default function FeaturesPage() {
                             </span>
                             <span className="text-[10px] text-gray-600">{feat.key}</span>
                           </div>
+
+                          {/* Role tags */}
+                          {feat.applicable_roles && feat.applicable_roles.length > 0 && (
+                            <div className="mt-2 flex flex-wrap gap-1">
+                              {feat.applicable_roles.length === Object.keys(ROLE_LABELS).length ? (
+                                <span className="text-[9px] px-1.5 py-0.5 rounded border bg-brass-400/10 text-brass-400 border-brass-400/20">All Users</span>
+                              ) : (
+                                feat.applicable_roles.map(role => (
+                                  <span key={role} className={`text-[9px] px-1.5 py-0.5 rounded border ${ROLE_COLORS[role] || 'bg-gray-400/10 text-gray-400 border-gray-400/20'}`}>
+                                    {ROLE_LABELS[role] || role}
+                                  </span>
+                                ))
+                              )}
+                            </div>
+                          )}
 
                           {/* Config display */}
                           {feat.config && Object.keys(feat.config).length > 0 && (
