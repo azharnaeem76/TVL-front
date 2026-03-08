@@ -1,17 +1,34 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import Navbar from '@/components/Navbar';
 import { useToast } from '@/components/Toast';
-import { aiAnalyzeContract } from '@/lib/api';
+import { aiAnalyzeContract, aiAnalyzeContractUpload } from '@/lib/api';
+
+const ACCEPTED_TYPES = '.pdf,.doc,.docx,.png,.jpg,.jpeg,.tiff,.bmp,.webp,.txt';
 
 export default function AIContractPage() {
   const [text, setText] = useState('');
   const [result, setResult] = useState<any>(null);
   const [loading, setLoading] = useState(false);
+  const [uploadedFile, setUploadedFile] = useState<File | null>(null);
+  const [inputMode, setInputMode] = useState<'paste' | 'upload'>('paste');
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const { showToast } = useToast();
 
   const handleSubmit = async () => {
+    if (inputMode === 'upload' && uploadedFile) {
+      setLoading(true);
+      try {
+        const data = await aiAnalyzeContractUpload(uploadedFile);
+        setResult(data);
+      } catch (err: any) {
+        showToast(err.message || 'Analysis failed', 'error');
+      } finally {
+        setLoading(false);
+      }
+      return;
+    }
     if (!text.trim()) return showToast('Please paste contract text', 'error');
     setLoading(true);
     try {
@@ -22,6 +39,23 @@ export default function AIContractPage() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleFileDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    const file = e.dataTransfer.files[0];
+    if (file) { setUploadedFile(file); setInputMode('upload'); }
+  };
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) { setUploadedFile(file); setInputMode('upload'); }
+  };
+
+  const formatFileSize = (bytes: number) => {
+    if (bytes < 1024) return bytes + ' B';
+    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+    return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
   };
 
   const riskColor = (risk: string) => {
@@ -41,16 +75,69 @@ export default function AIContractPage() {
           </div>
 
           <div className="bg-white/[0.03] border border-brass-400/10 rounded-xl p-6 mb-6">
-            <textarea value={text} onChange={(e) => setText(e.target.value)}
-              placeholder="Paste the contract text here for analysis..."
-              className="w-full h-64 bg-navy-900/50 border border-brass-400/10 rounded-lg p-4 text-gray-200 placeholder-gray-500 resize-none focus:outline-none focus:border-brass-400/30" />
-            <div className="flex justify-between items-center mt-4">
-              <span className="text-xs text-gray-500">{text.length} characters</span>
-              <button onClick={handleSubmit} disabled={loading || !text.trim()}
-                className="px-6 py-2.5 bg-brass-400/20 text-brass-300 rounded-lg hover:bg-brass-400/30 transition-colors disabled:opacity-50">
-                {loading ? <span className="flex items-center gap-2"><svg className="animate-spin h-4 w-4" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" /></svg>Analyzing...</span> : 'Analyze Contract'}
+            {/* Input Mode Tabs */}
+            <div className="flex gap-2 mb-4">
+              <button onClick={() => setInputMode('paste')}
+                className={`px-4 py-2 rounded-lg text-sm transition-colors ${inputMode === 'paste' ? 'bg-brass-400/20 text-brass-300 border border-brass-400/30' : 'bg-white/[0.03] text-gray-400 border border-transparent hover:border-brass-400/10'}`}>
+                Paste Text
+              </button>
+              <button onClick={() => setInputMode('upload')}
+                className={`px-4 py-2 rounded-lg text-sm transition-colors ${inputMode === 'upload' ? 'bg-brass-400/20 text-brass-300 border border-brass-400/30' : 'bg-white/[0.03] text-gray-400 border border-transparent hover:border-brass-400/10'}`}>
+                Upload Document
               </button>
             </div>
+
+            {inputMode === 'paste' ? (
+              <>
+                <textarea value={text} onChange={(e) => setText(e.target.value)}
+                  placeholder="Paste the contract text here for analysis..."
+                  className="w-full h-64 bg-navy-900/50 border border-brass-400/10 rounded-lg p-4 text-gray-200 placeholder-gray-500 resize-none focus:outline-none focus:border-brass-400/30" />
+                <div className="flex justify-between items-center mt-4">
+                  <span className="text-xs text-gray-500">{text.length} characters</span>
+                  <button onClick={handleSubmit} disabled={loading || !text.trim()}
+                    className="px-6 py-2.5 bg-brass-400/20 text-brass-300 rounded-lg hover:bg-brass-400/30 transition-colors disabled:opacity-50">
+                    {loading ? <span className="flex items-center gap-2"><svg className="animate-spin h-4 w-4" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" /></svg>Analyzing...</span> : 'Analyze Contract'}
+                  </button>
+                </div>
+              </>
+            ) : (
+              <>
+                <input ref={fileInputRef} type="file" accept={ACCEPTED_TYPES} onChange={handleFileSelect} className="hidden" />
+                <div
+                  onDragOver={(e) => e.preventDefault()}
+                  onDrop={handleFileDrop}
+                  onClick={() => fileInputRef.current?.click()}
+                  className="w-full h-64 bg-navy-900/50 border-2 border-dashed border-brass-400/20 rounded-lg flex flex-col items-center justify-center cursor-pointer hover:border-brass-400/40 transition-colors"
+                >
+                  {uploadedFile ? (
+                    <div className="text-center">
+                      <svg className="w-12 h-12 text-brass-400 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                      </svg>
+                      <p className="text-white font-medium text-sm">{uploadedFile.name}</p>
+                      <p className="text-gray-500 text-xs mt-1">{formatFileSize(uploadedFile.size)}</p>
+                      <button onClick={(e) => { e.stopPropagation(); setUploadedFile(null); }}
+                        className="text-xs text-red-400 hover:text-red-300 mt-2">Remove</button>
+                    </div>
+                  ) : (
+                    <div className="text-center">
+                      <svg className="w-12 h-12 text-gray-500 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                      </svg>
+                      <p className="text-gray-400 text-sm">Drop your document here or <span className="text-brass-400">browse</span></p>
+                      <p className="text-gray-600 text-xs mt-2">PDF, Word (.docx), Images (JPG, PNG), Text files</p>
+                      <p className="text-gray-600 text-xs">Max 20MB - scanned documents supported via OCR</p>
+                    </div>
+                  )}
+                </div>
+                <div className="flex justify-end mt-4">
+                  <button onClick={handleSubmit} disabled={loading || !uploadedFile}
+                    className="px-6 py-2.5 bg-brass-400/20 text-brass-300 rounded-lg hover:bg-brass-400/30 transition-colors disabled:opacity-50">
+                    {loading ? <span className="flex items-center gap-2"><svg className="animate-spin h-4 w-4" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" /></svg>Analyzing...</span> : 'Analyze Document'}
+                  </button>
+                </div>
+              </>
+            )}
           </div>
 
           {result && (

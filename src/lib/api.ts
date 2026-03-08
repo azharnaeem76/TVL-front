@@ -465,6 +465,22 @@ export async function aiAnalyzeContract(contract_text: string, language?: string
   return request('/ai-tools/analyze-contract', { method: 'POST', body: JSON.stringify({ contract_text, language }) });
 }
 
+export async function aiAnalyzeContractUpload(file: File) {
+  const token = getToken();
+  const formData = new FormData();
+  formData.append('file', file);
+  const res = await fetch(`${API_BASE}/ai-tools/analyze-contract-upload`, {
+    method: 'POST',
+    headers: token ? { 'Authorization': `Bearer ${token}` } : {},
+    body: formData,
+  });
+  if (!res.ok) {
+    const error = await res.json().catch(() => ({ detail: 'Upload failed' }));
+    throw new Error(error.detail || 'Upload failed');
+  }
+  return res.json();
+}
+
 export async function aiFindCitations(legal_principle: string, area_of_law?: string, language?: string) {
   return request('/ai-tools/find-citations', { method: 'POST', body: JSON.stringify({ legal_principle, area_of_law, language }) });
 }
@@ -703,4 +719,91 @@ export async function toggleForumPostLike(postId: number) {
 
 export async function toggleForumReplyLike(replyId: number) {
   return request(`/forum/replies/${replyId}/like`, { method: 'POST' });
+}
+
+// ─── Workspaces ──────────────────────────────────────────────────────────────
+
+export async function getWorkspaces() {
+  return request('/workspaces/');
+}
+
+export async function createWorkspace(data: { name: string; description?: string }) {
+  return request('/workspaces/', { method: 'POST', body: JSON.stringify(data) });
+}
+
+export async function getWorkspace(id: number) {
+  return request(`/workspaces/${id}`);
+}
+
+export async function updateWorkspace(id: number, data: { name?: string; description?: string }) {
+  return request(`/workspaces/${id}`, { method: 'PUT', body: JSON.stringify(data) });
+}
+
+export async function deleteWorkspace(id: number) {
+  return request(`/workspaces/${id}`, { method: 'DELETE' });
+}
+
+export async function inviteToWorkspace(wsId: number, email: string, role: string = 'member') {
+  return request(`/workspaces/${wsId}/invite`, { method: 'POST', body: JSON.stringify({ email, role }) });
+}
+
+export async function cancelWorkspaceInvite(wsId: number, inviteId: number) {
+  return request(`/workspaces/${wsId}/invite/${inviteId}/cancel`, { method: 'POST' });
+}
+
+export async function getMyPendingInvites() {
+  return request('/workspaces/invites/pending');
+}
+
+export async function acceptWorkspaceInvite(token: string) {
+  return request(`/workspaces/invites/accept?token=${token}`, { method: 'POST' });
+}
+
+export async function declineWorkspaceInvite(token: string) {
+  return request(`/workspaces/invites/decline?token=${token}`, { method: 'POST' });
+}
+
+export async function changeWorkspaceMemberRole(wsId: number, memberId: number, role: string) {
+  return request(`/workspaces/${wsId}/members/${memberId}/role?role=${role}`, { method: 'PUT' });
+}
+
+export async function removeWorkspaceMember(wsId: number, memberId: number) {
+  return request(`/workspaces/${wsId}/members/${memberId}`, { method: 'DELETE' });
+}
+
+export async function leaveWorkspace(wsId: number) {
+  return request(`/workspaces/${wsId}/leave`, { method: 'POST' });
+}
+
+export async function getWorkspaceTasks(wsId: number, status?: string) {
+  const query = status ? `?status=${status}` : '';
+  return request(`/workspaces/${wsId}/tasks${query}`);
+}
+
+export async function createWorkspaceTask(wsId: number, data: { title: string; description?: string; priority?: string; assigned_to?: number; due_date?: string }) {
+  return request(`/workspaces/${wsId}/tasks`, { method: 'POST', body: JSON.stringify(data) });
+}
+
+export async function updateWorkspaceTask(wsId: number, taskId: number, data: any) {
+  return request(`/workspaces/${wsId}/tasks/${taskId}`, { method: 'PUT', body: JSON.stringify(data) });
+}
+
+export async function deleteWorkspaceTask(wsId: number, taskId: number) {
+  return request(`/workspaces/${wsId}/tasks/${taskId}`, { method: 'DELETE' });
+}
+
+export async function getWorkspaceNotes(wsId: number) {
+  return request(`/workspaces/${wsId}/notes`);
+}
+
+export async function createWorkspaceNote(wsId: number, data: { title: string; content?: string }) {
+  return request(`/workspaces/${wsId}/notes`, { method: 'POST', body: JSON.stringify(data) });
+}
+
+export async function updateWorkspaceNote(wsId: number, noteId: number, data: { title?: string; content?: string }) {
+  return request(`/workspaces/${wsId}/notes/${noteId}`, { method: 'PUT', body: JSON.stringify(data) });
+}
+
+export async function deleteWorkspaceNote(wsId: number, noteId: number) {
+  return request(`/workspaces/${wsId}/notes/${noteId}`, { method: 'DELETE' });
 }

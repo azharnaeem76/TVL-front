@@ -301,6 +301,64 @@
 .prose code { @apply bg-white/10 px-1.5 py-0.5 rounded text-sm text-gold-300; }
 
 /* ============================================
+   QUILL RICH TEXT EDITOR (Dark Theme)
+   ============================================ */
+@import 'react-quill-new/dist/quill.snow.css';
+
+.quill-dark .ql-toolbar {
+  border-color: rgba(196, 164, 80, 0.15) !important;
+  background: rgba(14, 21, 39, 0.6);
+  border-radius: 0.5rem 0.5rem 0 0;
+}
+.quill-dark .ql-toolbar .ql-stroke { stroke: #9ca3af; }
+.quill-dark .ql-toolbar .ql-fill { fill: #9ca3af; }
+.quill-dark .ql-toolbar .ql-picker-label { color: #9ca3af; }
+.quill-dark .ql-toolbar button:hover .ql-stroke,
+.quill-dark .ql-toolbar .ql-picker-label:hover .ql-stroke { stroke: #fac311; }
+.quill-dark .ql-toolbar button:hover .ql-fill,
+.quill-dark .ql-toolbar .ql-picker-label:hover .ql-fill { fill: #fac311; }
+.quill-dark .ql-toolbar button.ql-active .ql-stroke { stroke: #fac311; }
+.quill-dark .ql-toolbar button.ql-active .ql-fill { fill: #fac311; }
+.quill-dark .ql-toolbar .ql-picker-options {
+  background: #141c2e;
+  border-color: rgba(196, 164, 80, 0.15);
+}
+.quill-dark .ql-toolbar .ql-picker-item { color: #9ca3af; }
+.quill-dark .ql-toolbar .ql-picker-item:hover { color: #fac311; }
+
+.quill-dark .ql-container {
+  border-color: rgba(196, 164, 80, 0.15) !important;
+  background: rgba(14, 21, 39, 0.5);
+  border-radius: 0 0 0.5rem 0.5rem;
+  min-height: 200px;
+  font-size: 0.875rem;
+}
+.quill-dark .ql-editor {
+  color: #e2e8f0;
+  min-height: 200px;
+}
+.quill-dark .ql-editor.ql-blank::before {
+  color: #6b7280;
+  font-style: normal;
+}
+.quill-dark .ql-editor h1, .quill-dark .ql-editor h2, .quill-dark .ql-editor h3 { color: #f3f4f6; }
+.quill-dark .ql-editor a { color: #fac311; }
+
+html.light .quill-dark .ql-toolbar {
+  background: #f9fafb;
+  border-color: #d4d4cc !important;
+}
+html.light .quill-dark .ql-toolbar .ql-stroke { stroke: #4b5563; }
+html.light .quill-dark .ql-toolbar .ql-fill { fill: #4b5563; }
+html.light .quill-dark .ql-toolbar .ql-picker-label { color: #4b5563; }
+html.light .quill-dark .ql-container {
+  background: #ffffff;
+  border-color: #d4d4cc !important;
+}
+html.light .quill-dark .ql-editor { color: #1a1a2e; }
+html.light .quill-dark .ql-editor.ql-blank::before { color: #9ca3af; }
+
+/* ============================================
    STAGGER HELPERS
    ============================================ */
 .stagger-1 { animation-delay: 0.1s; }

@@ -1,9 +1,12 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
+import dynamic from 'next/dynamic';
 import Navbar from '@/components/Navbar';
 import { isLoggedIn, getCurrentUser, adminGetStudyContent, adminCreateStudyContent, adminUpdateStudyContent, adminDeleteStudyContent } from '@/lib/api';
+
+const ReactQuill = dynamic(() => import('react-quill-new'), { ssr: false });
 
 const CONTENT_TYPES = [
   { key: 'quiz_question', label: 'Quiz Question' },
@@ -368,13 +371,28 @@ export default function StudyContentPage() {
                   </>
                 )}
 
-                {/* Note / Past Paper Content */}
+                {/* Note / Past Paper Content - Rich Text Editor */}
                 {formType !== 'quiz_question' && (
                   <div>
                     <label className="text-sm text-gray-400 block mb-1">Content</label>
-                    <textarea value={formContent} onChange={e => setFormContent(e.target.value)} rows={10}
-                      placeholder={formType === 'study_note' ? 'Write study notes here...' : 'Paste past paper questions and answers here...'}
-                      className="w-full bg-navy-950 border border-brass-400/10 rounded-lg px-4 py-2 text-gray-200 text-sm focus:outline-none resize-none font-mono" />
+                    <div className="quill-dark">
+                      <ReactQuill
+                        theme="snow"
+                        value={formContent}
+                        onChange={setFormContent}
+                        placeholder={formType === 'study_note' ? 'Write study notes here...' : 'Paste past paper questions and answers here...'}
+                        modules={{
+                          toolbar: [
+                            [{ header: [1, 2, 3, false] }],
+                            ['bold', 'italic', 'underline', 'strike'],
+                            [{ list: 'ordered' }, { list: 'bullet' }],
+                            ['blockquote', 'code-block'],
+                            ['link'],
+                            ['clean'],
+                          ],
+                        }}
+                      />
+                    </div>
                   </div>
                 )}
 
