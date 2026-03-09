@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Navbar from '@/components/Navbar';
-import { getStatutes, getStatuteSections, getCurrentUser } from '@/lib/api';
+import { getStatutes, getStatuteDetail, getStatuteSections, getCurrentUser } from '@/lib/api';
 import { GavelSVG } from '@/components/CourtElements';
 
 interface Statute {
@@ -13,6 +13,8 @@ interface Statute {
   year?: number;
   category?: string;
   description?: string;
+  full_text?: string;
+  summary_en?: string;
 }
 
 interface Section {
@@ -81,8 +83,13 @@ export default function StatutesPage() {
     setLoadingSections(true);
     setSectionSearch('');
     try {
-      const data = await getStatuteSections(statute.id);
-      setSections(Array.isArray(data) ? data : data.sections || []);
+      const [sectionsData, detail] = await Promise.all([
+        getStatuteSections(statute.id),
+        getStatuteDetail(statute.id),
+      ]);
+      setSections(Array.isArray(sectionsData) ? sectionsData : sectionsData.sections || []);
+      // Update statute with full details (including full_text)
+      setSelectedStatute(detail);
     } catch {
       setSections([]);
     } finally {
@@ -145,10 +152,26 @@ export default function StatutesPage() {
               ))}
             </div>
           ) : sections.length === 0 ? (
-            <div className="text-center py-16">
-              <p className="text-gray-400">No sections have been added for this statute yet.</p>
-              <p className="text-sm mt-2 text-gray-600">Sections will be available once an administrator adds them.</p>
-            </div>
+            selectedStatute.full_text || selectedStatute.summary_en ? (
+              <div className="court-panel p-6">
+                {selectedStatute.summary_en && (
+                  <div className="mb-6">
+                    <h3 className="text-sm font-semibold text-brass-400/60 uppercase tracking-wider mb-3">Summary</h3>
+                    <p className="text-sm text-gray-300 leading-relaxed">{selectedStatute.summary_en}</p>
+                  </div>
+                )}
+                {selectedStatute.full_text && (
+                  <div>
+                    <h3 className="text-sm font-semibold text-brass-400/60 uppercase tracking-wider mb-3">Full Text</h3>
+                    <div className="prose text-sm text-gray-300 leading-relaxed whitespace-pre-wrap">{selectedStatute.full_text}</div>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="text-center py-16">
+                <p className="text-gray-400">No content available for this statute yet.</p>
+              </div>
+            )
           ) : filteredSections.length > 0 ? (
             <div className="space-y-3">
               {filteredSections.map((s) => (

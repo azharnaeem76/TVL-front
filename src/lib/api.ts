@@ -5,7 +5,7 @@ function getToken(): string | null {
   return localStorage.getItem('tvl_token');
 }
 
-async function request(path: string, options: RequestInit = {}) {
+async function request(path: string, options: RequestInit = {}, timeoutMs: number = 120000) {
   const token = getToken();
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
@@ -15,21 +15,33 @@ async function request(path: string, options: RequestInit = {}) {
     headers['Authorization'] = `Bearer ${token}`;
   }
 
-  const res = await fetch(`${API_BASE}${path}`, { ...options, headers });
-  if (!res.ok) {
-    if (res.status === 401 && typeof window !== 'undefined' && !path.startsWith('/auth/')) {
-      localStorage.removeItem('tvl_token');
-      localStorage.removeItem('tvl_user');
-      throw new Error('Session expired. Please log in again.');
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+
+  try {
+    const res = await fetch(`${API_BASE}${path}`, { ...options, headers, signal: controller.signal });
+    clearTimeout(timeoutId);
+    if (!res.ok) {
+      if (res.status === 401 && typeof window !== 'undefined' && !path.startsWith('/auth/')) {
+        localStorage.removeItem('tvl_token');
+        localStorage.removeItem('tvl_user');
+        throw new Error('Session expired. Please log in again.');
+      }
+      if (res.status === 403) {
+        const error = await res.json().catch(() => ({ detail: 'Access denied' }));
+        throw new Error(error.detail || 'Access denied');
+      }
+      const error = await res.json().catch(() => ({ detail: 'Request failed' }));
+      throw new Error(error.detail || 'Request failed');
     }
-    if (res.status === 403) {
-      const error = await res.json().catch(() => ({ detail: 'Access denied' }));
-      throw new Error(error.detail || 'Access denied');
+    return res.json();
+  } catch (err: any) {
+    clearTimeout(timeoutId);
+    if (err.name === 'AbortError') {
+      throw new Error('Request timed out. Please try again.');
     }
-    const error = await res.json().catch(() => ({ detail: 'Request failed' }));
-    throw new Error(error.detail || 'Request failed');
+    throw err;
   }
-  return res.json();
 }
 
 // Auth
@@ -89,7 +101,7 @@ export async function scenarioSearch(query: string, options?: {
   return request(endpoint, {
     method: 'POST',
     body: JSON.stringify({ query, ...options }),
-  });
+  }, 180000);
 }
 
 export async function detectLanguage(text: string) {
@@ -200,6 +212,10 @@ export async function getStatutes(params?: { category?: string; search?: string 
     });
   }
   return request(`/legal/statutes?${query}`);
+}
+
+export async function getStatuteDetail(statuteId: number) {
+  return request(`/legal/statutes/${statuteId}`);
 }
 
 export async function getStatuteSections(statuteId: number) {
