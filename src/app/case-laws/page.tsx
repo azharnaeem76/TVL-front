@@ -103,7 +103,7 @@ export default function CaseLawsPage() {
         />
       )}
 
-      <main className="max-w-6xl mx-auto px-4 pt-24 pb-16">
+      <main className="w-full px-4 pt-24 pb-16">
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-3">
             <GavelSVG size={28} className="opacity-30" />

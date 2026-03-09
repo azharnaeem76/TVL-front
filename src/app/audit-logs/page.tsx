@@ -33,7 +33,7 @@ export default function AuditLogsPage() {
     <>
       <Navbar />
       <div className="min-h-screen bg-navy-950 pt-20 px-4 pb-12">
-        <div className="max-w-6xl mx-auto">
+        <div className="w-full">
           <div className="mb-6">
             <h1 className="text-2xl font-display font-bold text-white">Audit Logs</h1>
             <p className="text-gray-400 mt-1">Track all admin and user actions</p>

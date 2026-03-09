@@ -161,7 +161,7 @@ export default function ForumPage() {
   return (
     <div className="min-h-screen bg-navy-950 noise">
       <Navbar />
-      <main className="max-w-5xl mx-auto px-4 pt-24 pb-16">
+      <main className="w-full px-4 pt-24 pb-16">
         <div className="flex justify-between items-start mb-6">
           <div>
             <h1 className="text-2xl sm:text-3xl font-display font-bold text-white">Community Forum</h1>

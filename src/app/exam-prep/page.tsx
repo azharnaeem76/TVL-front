@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Navbar from '@/components/Navbar';
 import { useToast } from '@/components/Toast';
 import { generateExamQuestions, evaluateExamAnswer } from '@/lib/api';
@@ -47,7 +47,13 @@ export default function ExamPrepPage() {
   const [results, setResults] = useState<Record<number, any>>({});
   const [loading, setLoading] = useState(false);
   const [showAnswers, setShowAnswers] = useState(false);
+  const [elapsed, setElapsed] = useState(0);
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const { showToast } = useToast();
+
+  useEffect(() => {
+    return () => { if (timerRef.current) clearInterval(timerRef.current); };
+  }, []);
 
   const handleGenerate = async () => {
     if (!subject) return showToast('Select a subject', 'error');
@@ -56,10 +62,14 @@ export default function ExamPrepPage() {
     setAnswers({});
     setResults({});
     setShowAnswers(false);
+    setElapsed(0);
+    timerRef.current = setInterval(() => setElapsed(e => e + 1), 1000);
     try {
       const data = await generateExamQuestions(subject, examType, topic || undefined, numQ);
       setQuestions(data.questions || []);
+      if (!data.questions?.length) showToast('No questions generated. Please try again.', 'error');
     } catch (err: any) { showToast(err.message || 'Failed', 'error'); }
+    if (timerRef.current) clearInterval(timerRef.current);
     setLoading(false);
   };
 
@@ -86,7 +96,7 @@ export default function ExamPrepPage() {
     <>
       <Navbar />
       <div className="min-h-screen bg-navy-950 pt-20 px-4 pb-12">
-        <div className="max-w-4xl mx-auto">
+        <div className="w-full">
           <div className="mb-8">
             <h1 className="text-2xl font-display font-bold text-white">Exam Preparation</h1>
             <p className="text-gray-400 mt-1">Practice for LLB, Bar, LAT, GAT, CSS, Judiciary and more exams with AI</p>
@@ -134,7 +144,12 @@ export default function ExamPrepPage() {
               </div>
               <button onClick={handleGenerate} disabled={loading || !subject}
                 className="w-full py-3 bg-brass-400/20 text-brass-300 rounded-lg hover:bg-brass-400/30 transition-colors disabled:opacity-50">
-                {loading ? 'Generating Questions...' : `Start ${EXAM_TYPES.find(e => e.key === examType)?.name || ''} Practice`}
+                {loading ? (
+                  <span className="flex items-center justify-center gap-2">
+                    <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" /></svg>
+                    Generating Questions... ({elapsed}s) - AI is thinking, please wait
+                  </span>
+                ) : `Start ${EXAM_TYPES.find(e => e.key === examType)?.name || ''} Practice`}
               </button>
             </div>
           ) : (

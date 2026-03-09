@@ -48,7 +48,7 @@ export default function ChatPage() {
     return (
       <div className="min-h-screen bg-navy-950 noise">
         <Navbar />
-        <div className="max-w-2xl mx-auto px-4 pt-32 text-center">
+        <div className="w-full px-4 pt-32 text-center">
           <div className="court-panel p-12">
             <GavelSVG size={50} className="mx-auto mb-4 opacity-30" />
             <h1 className="text-2xl font-display font-bold text-white mb-3">AI Legal Assistant</h1>
@@ -66,14 +66,16 @@ export default function ChatPage() {
 
     const userMessage = input.trim();
     setInput('');
-    setMessages(prev => [...prev, { id: Date.now(), role: 'user', content: userMessage }]);
+    const userMsgId = Date.now();
+    const placeholderId = userMsgId + 1;
+    setMessages(prev => [
+      ...prev,
+      { id: userMsgId, role: 'user', content: userMessage },
+      { id: placeholderId, role: 'assistant', content: '' },
+    ]);
     setLoading(true);
     setStreaming(true);
     streamingContentRef.current = '';
-
-    // Add placeholder assistant message
-    const placeholderId = Date.now() + 1;
-    setMessages(prev => [...prev, { id: placeholderId, role: 'assistant', content: '' }]);
 
     try {
       await sendChatMessageStream(
@@ -160,9 +162,9 @@ export default function ChatPage() {
   };
 
   return (
-    <div className="min-h-screen bg-navy-950 noise flex flex-col">
+    <div className="h-screen bg-navy-950 noise flex flex-col overflow-hidden">
       <Navbar />
-      <div className="flex flex-1 overflow-hidden pt-16 max-w-[1400px] mx-auto w-full">
+      <div className="flex flex-1 overflow-hidden pt-16 w-full">
         {/* Sessions Sidebar */}
         <div className={`fixed lg:relative inset-y-0 left-0 z-40 w-72 bg-navy-950/95 lg:bg-transparent backdrop-blur-xl lg:backdrop-blur-none border-r border-brass-400/10 p-4 pt-20 lg:pt-4 overflow-y-auto transition-transform duration-300 lg:translate-x-0 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
           <button onClick={newChat} className="btn-primary w-full mb-4 text-sm !py-2.5">
@@ -248,8 +250,8 @@ export default function ChatPage() {
               </div>
             )}
 
-            {messages.map(msg => (
-              <div key={msg.id} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+            {messages.map((msg, idx) => (
+              <div key={`${msg.role}-${msg.id}-${idx}`} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
                 <div className={`max-w-[80%] rounded-2xl px-5 py-3.5 ${
                   msg.role === 'user'
                     ? 'bg-brass-600/30 text-white rounded-br-md border border-brass-400/20'
@@ -289,7 +291,7 @@ export default function ChatPage() {
 
           {/* Input */}
           <div className="border-t border-brass-400/10 bg-navy-950/80 backdrop-blur-xl p-4">
-            <form onSubmit={handleSend} className="flex gap-3 max-w-4xl mx-auto">
+            <form onSubmit={handleSend} className="flex gap-3 w-full">
               <input
                 value={input}
                 onChange={(e) => setInput(e.target.value)}

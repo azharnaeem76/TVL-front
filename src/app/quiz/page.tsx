@@ -135,7 +135,7 @@ export default function QuizPage() {
     return (
       <div className="min-h-screen bg-navy-950 noise">
         <Navbar />
-        <main className="max-w-2xl mx-auto px-4 pt-24 pb-16">
+        <main className="w-full px-4 pt-24 pb-16">
           <div className="court-panel p-10 text-center">
             <div className="w-24 h-24 rounded-full bg-brass-400/10 border-2 border-brass-400/30 flex items-center justify-center mx-auto mb-6">
               <span className="text-3xl font-display font-black text-brass-300">{pct}%</span>
@@ -164,7 +164,7 @@ export default function QuizPage() {
     return (
       <div className="min-h-screen bg-navy-950 noise">
         <Navbar />
-        <main className="max-w-3xl mx-auto px-4 pt-24 pb-16">
+        <main className="w-full px-4 pt-24 pb-16">
           {/* Progress */}
           <div className="flex items-center justify-between mb-6">
             <button onClick={() => setQuizStarted(false)} className="text-sm text-gray-500 hover:text-brass-300 transition-colors">Exit Quiz</button>
@@ -246,7 +246,7 @@ export default function QuizPage() {
   return (
     <div className="min-h-screen bg-navy-950 noise">
       <Navbar />
-      <main className="max-w-3xl mx-auto px-4 pt-24 pb-16">
+      <main className="w-full px-4 pt-24 pb-16">
         <div className="text-center mb-10">
           <GavelSVG size={50} className="mx-auto mb-4 opacity-30" />
           <h1 className="text-3xl font-display font-bold text-white mb-2">Legal Quiz</h1>

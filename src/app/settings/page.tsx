@@ -157,7 +157,7 @@ export default function SettingsPage() {
   return (
     <div className="min-h-screen bg-navy-950 noise">
       <Navbar />
-      <main className="max-w-3xl mx-auto px-4 pt-24 pb-16">
+      <main className="w-full px-4 pt-24 pb-16">
         <h1 className="text-3xl font-display font-bold text-white mb-2">Settings</h1>
         <p className="text-gray-400 mb-8 text-sm">Manage your profile, preferences, and account</p>
 

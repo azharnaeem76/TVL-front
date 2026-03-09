@@ -157,7 +157,7 @@ export default function AnalyticsPage() {
   return (
     <div className="min-h-screen bg-navy-950 noise">
       <Navbar />
-      <main className="max-w-6xl mx-auto px-4 pt-24 pb-16">
+      <main className="w-full px-4 pt-24 pb-16">
         <div className="flex items-center gap-3 mb-8">
           <GavelSVG size={28} className="opacity-40" />
           <h1 className="text-3xl font-display font-bold text-white">Analytics</h1>

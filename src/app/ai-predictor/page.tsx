@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Navbar from '@/components/Navbar';
 import { useToast } from '@/components/Toast';
 import { aiPredict } from '@/lib/api';
@@ -12,17 +12,24 @@ export default function AIPredictorPage() {
   const [area, setArea] = useState('General');
   const [result, setResult] = useState<any>(null);
   const [loading, setLoading] = useState(false);
+  const [elapsed, setElapsed] = useState(0);
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const { showToast } = useToast();
+
+  useEffect(() => { return () => { if (timerRef.current) clearInterval(timerRef.current); }; }, []);
 
   const handleSubmit = async () => {
     if (!description.trim()) return showToast('Please describe your case', 'error');
     setLoading(true);
+    setElapsed(0);
+    timerRef.current = setInterval(() => setElapsed(e => e + 1), 1000);
     try {
       const data = await aiPredict(description, area);
       setResult(data);
     } catch (err: any) {
       showToast(err.message || 'Prediction failed', 'error');
     } finally {
+      if (timerRef.current) clearInterval(timerRef.current);
       setLoading(false);
     }
   };
@@ -37,7 +44,7 @@ export default function AIPredictorPage() {
     <>
       <Navbar />
       <div className="min-h-screen bg-navy-950 pt-20 px-4 pb-12">
-        <div className="max-w-4xl mx-auto">
+        <div className="w-full">
           <div className="mb-8">
             <h1 className="text-2xl font-display font-bold text-white">Case Outcome Predictor</h1>
             <p className="text-gray-400 mt-1">Predict likely case outcomes based on Pakistani legal precedents</p>
@@ -57,7 +64,7 @@ export default function AIPredictorPage() {
             <div className="flex justify-end mt-4">
               <button onClick={handleSubmit} disabled={loading || !description.trim()}
                 className="px-6 py-2.5 bg-brass-400/20 text-brass-300 rounded-lg hover:bg-brass-400/30 transition-colors disabled:opacity-50">
-                {loading ? <span className="flex items-center gap-2"><svg className="animate-spin h-4 w-4" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" /></svg>Predicting...</span> : 'Predict Outcome'}
+                {loading ? <span className="flex items-center gap-2"><svg className="animate-spin h-4 w-4" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" /></svg>Predicting... ({elapsed}s)</span> : 'Predict Outcome'}
               </button>
             </div>
           </div>

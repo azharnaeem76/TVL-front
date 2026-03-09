@@ -52,7 +52,7 @@ export default function CaseLawDetailPage() {
     return (
       <div className="min-h-screen bg-navy-950 noise">
         <Navbar />
-        <main className="max-w-4xl mx-auto px-4 pt-24 pb-16 space-y-6">
+        <main className="w-full px-4 pt-24 pb-16 space-y-6">
           <Skeleton className="h-8 w-48" />
           <Skeleton className="h-12 w-3/4" />
           <div className="flex gap-3"><Skeleton className="h-6 w-24 !rounded-full" /><Skeleton className="h-6 w-20 !rounded-full" /></div>
@@ -67,7 +67,7 @@ export default function CaseLawDetailPage() {
     return (
       <div className="min-h-screen bg-navy-950 noise">
         <Navbar />
-        <main className="max-w-4xl mx-auto px-4 pt-24 pb-16 text-center">
+        <main className="w-full px-4 pt-24 pb-16 text-center">
           <GavelSVG size={50} className="mx-auto mb-4 opacity-20" />
           <h1 className="text-xl font-display font-bold text-white mb-2">Case Not Found</h1>
           <p className="text-gray-400">{error || 'The requested case law could not be found.'}</p>
@@ -96,7 +96,7 @@ export default function CaseLawDetailPage() {
         />
       )}
 
-      <main className="max-w-4xl mx-auto px-4 pt-24 pb-16">
+      <main className="w-full px-4 pt-24 pb-16">
         {/* Back link */}
         <a href="/case-laws" className="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-brass-300 transition-colors mb-6">
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

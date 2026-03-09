@@ -44,7 +44,7 @@ export default function BookmarksPage() {
   return (
     <div className="min-h-screen bg-navy-950 noise">
       <Navbar />
-      <main className="max-w-5xl mx-auto px-4 pt-24 pb-16">
+      <main className="w-full px-4 pt-24 pb-16">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
           <div>
             <h1 className="text-3xl font-display font-bold text-white flex items-center gap-3">

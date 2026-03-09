@@ -96,7 +96,7 @@ export default function SubscriptionsPage() {
     <>
       <Navbar />
       <div className="min-h-screen bg-navy-950 pt-20 px-4 pb-12">
-        <div className="max-w-5xl mx-auto">
+        <div className="w-full">
           <div className="text-center mb-10">
             <h1 className="text-2xl font-display font-bold text-white">Subscription Plans</h1>
             <p className="text-gray-400 mt-2">Choose the plan that fits your legal practice</p>

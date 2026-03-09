@@ -74,7 +74,7 @@ export default function ConsultationsPage() {
     <>
       <Navbar />
       <div className="min-h-screen bg-navy-950 pt-20 px-4 pb-12">
-        <div className="max-w-5xl mx-auto">
+        <div className="w-full">
           <div className="flex justify-between items-center mb-6">
             <div>
               <h1 className="text-2xl font-display font-bold text-white">Consultations</h1>

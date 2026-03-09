@@ -180,7 +180,7 @@ function SearchPage() {
         />
       )}
 
-      <main className="max-w-6xl mx-auto px-4 pt-24 pb-16">
+      <main className="w-full px-4 pt-24 pb-16">
         {/* Search Form */}
         <div className="court-panel p-4 sm:p-8 mb-8">
           <div className="flex items-center gap-3 mb-2">

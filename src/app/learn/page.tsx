@@ -896,8 +896,8 @@ export default function LearnPage() {
       {/* Hero */}
       <section className="relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-b from-brass-400/5 via-transparent to-transparent pointer-events-none" />
-        <div className="max-w-6xl mx-auto px-4 pt-28 pb-12 relative">
-          <div className="text-center max-w-3xl mx-auto">
+        <div className="w-full px-4 pt-28 pb-12 relative">
+          <div className="text-center w-full">
             <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-brass-400/10 border border-brass-400/20 text-brass-300 text-xs font-medium mb-6">
               <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25" />
@@ -918,7 +918,7 @@ export default function LearnPage() {
         </div>
       </section>
 
-      <main className="max-w-7xl mx-auto px-4 pb-20">
+      <main className="w-full px-4 pb-20">
         {/* Search & Filter */}
         <div className="court-panel p-5 mb-8 sticky top-16 z-30 backdrop-blur-xl bg-navy-950/90">
           <div className="flex flex-col md:flex-row gap-3">

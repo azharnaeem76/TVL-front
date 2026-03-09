@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Navbar from '@/components/Navbar';
 import { useToast } from '@/components/Toast';
 import { generateMootScenario, evaluateMootArgument } from '@/lib/api';
@@ -25,7 +25,13 @@ export default function MootCourtPage() {
   const [feedback, setFeedback] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [evaluating, setEvaluating] = useState(false);
+  const [elapsed, setElapsed] = useState(0);
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const { showToast } = useToast();
+
+  useEffect(() => {
+    return () => { if (timerRef.current) clearInterval(timerRef.current); };
+  }, []);
 
   const handleGenerate = async () => {
     const selectedTopic = customTopic || topic;
@@ -33,10 +39,13 @@ export default function MootCourtPage() {
     setLoading(true);
     setFeedback(null);
     setArgument('');
+    setElapsed(0);
+    timerRef.current = setInterval(() => setElapsed(e => e + 1), 1000);
     try {
       const data = await generateMootScenario(selectedTopic, side);
       setScenario(data);
     } catch (err: any) { showToast(err.message || 'Failed', 'error'); }
+    if (timerRef.current) clearInterval(timerRef.current);
     setLoading(false);
   };
 
@@ -56,7 +65,7 @@ export default function MootCourtPage() {
     <>
       <Navbar />
       <div className="min-h-screen bg-navy-950 pt-20 px-4 pb-12">
-        <div className="max-w-4xl mx-auto">
+        <div className="w-full">
           <div className="mb-8">
             <h1 className="text-2xl font-display font-bold text-white">Moot Court Simulator</h1>
             <p className="text-gray-400 mt-1">Practice arguing cases with AI-powered feedback</p>
@@ -98,7 +107,12 @@ export default function MootCourtPage() {
 
               <button onClick={handleGenerate} disabled={loading || (!topic && !customTopic)}
                 className="w-full py-3 bg-brass-400/20 text-brass-300 rounded-lg hover:bg-brass-400/30 transition-colors disabled:opacity-50">
-                {loading ? 'Generating Scenario...' : 'Start Moot Court'}
+                {loading ? (
+                  <span className="flex items-center justify-center gap-2">
+                    <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" /></svg>
+                    Generating Scenario... ({elapsed}s) - AI is thinking, please wait
+                  </span>
+                ) : 'Start Moot Court'}
               </button>
             </div>
           ) : (

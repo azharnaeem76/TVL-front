@@ -84,7 +84,7 @@ export default function ClientsPage() {
   return (
     <div className="min-h-screen bg-navy-950 noise">
       <Navbar />
-      <main className="px-4 sm:px-6 pt-24 pb-16 max-w-7xl mx-auto">
+      <main className="px-4 sm:px-6 pt-24 pb-16 w-full">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
           <div>
             <h1 className="text-2xl sm:text-3xl font-display font-bold text-white">Client Management</h1>

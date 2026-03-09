@@ -132,7 +132,9 @@ export async function sendChatMessageStream(
   onDone?: (data: { session_id: number; message_id: number }) => void,
 ) {
   const token = getToken();
-  const res = await fetch(`${API_BASE}/chat/message/stream`, {
+  // Use direct backend URL for SSE streaming to avoid Next.js proxy buffering
+  const streamUrl = 'http://localhost:8000/api/v1/chat/message/stream';
+  const res = await fetch(streamUrl, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -191,6 +193,7 @@ export async function getCaseLaw(id: number) {
 
 export async function getStatutes(params?: { category?: string; search?: string }) {
   const query = new URLSearchParams();
+  query.set('limit', '100');
   if (params) {
     Object.entries(params).forEach(([k, v]) => {
       if (v !== undefined) query.set(k, String(v));

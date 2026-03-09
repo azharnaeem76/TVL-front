@@ -31,6 +31,8 @@ export default function StatutesPage() {
   const [sections, setSections] = useState<Section[]>([]);
   const [loadingSections, setLoadingSections] = useState(false);
   const [sectionSearch, setSectionSearch] = useState('');
+  const [hasMore, setHasMore] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
 
   useEffect(() => {
     loadStatutes();
@@ -40,12 +42,33 @@ export default function StatutesPage() {
     setLoading(true);
     try {
       const data = await getStatutes({ category: category || undefined, search: search || undefined });
-      setStatutes(Array.isArray(data) ? data : data.results || []);
+      const list = Array.isArray(data) ? data : data.results || [];
+      setStatutes(list);
+      setHasMore(list.length >= 100);
     } catch {
       setStatutes([]);
     } finally {
       setLoading(false);
     }
+  };
+
+  const loadMore = async () => {
+    setLoadingMore(true);
+    try {
+      const query = new URLSearchParams();
+      query.set('limit', '100');
+      query.set('skip', String(statutes.length));
+      if (category) query.set('category', category);
+      if (search) query.set('search', search);
+      const res = await fetch(`/api/v1/legal/statutes?${query}`, {
+        headers: { 'Authorization': `Bearer ${localStorage.getItem('tvl_token')}` },
+      });
+      const data = await res.json();
+      const list = Array.isArray(data) ? data : data.results || [];
+      setStatutes(prev => [...prev, ...list]);
+      setHasMore(list.length >= 100);
+    } catch { /* ignore */ }
+    setLoadingMore(false);
   };
 
   const handleSearch = (e: React.FormEvent) => {
@@ -79,7 +102,7 @@ export default function StatutesPage() {
     return (
       <div className="min-h-screen bg-navy-950 noise">
         <Navbar />
-        <main className="max-w-5xl mx-auto px-4 pt-24 pb-16">
+        <main className="w-full px-4 pt-24 pb-16">
           <button
             onClick={() => { setSelectedStatute(null); setSections([]); }}
             className="flex items-center gap-2 text-sm text-brass-400/70 hover:text-brass-300 mb-6 transition-colors"
@@ -121,6 +144,11 @@ export default function StatutesPage() {
                 </div>
               ))}
             </div>
+          ) : sections.length === 0 ? (
+            <div className="text-center py-16">
+              <p className="text-gray-400">No sections have been added for this statute yet.</p>
+              <p className="text-sm mt-2 text-gray-600">Sections will be available once an administrator adds them.</p>
+            </div>
           ) : filteredSections.length > 0 ? (
             <div className="space-y-3">
               {filteredSections.map((s) => (
@@ -153,7 +181,7 @@ export default function StatutesPage() {
   return (
     <div className="min-h-screen bg-navy-950 noise">
       <Navbar />
-      <main className="max-w-6xl mx-auto px-4 pt-24 pb-16">
+      <main className="w-full px-4 pt-24 pb-16">
         <div className="court-panel p-4 sm:p-8 mb-8">
           <div className="flex items-center justify-between mb-2">
             <div className="flex items-center gap-3">
@@ -237,6 +265,15 @@ export default function StatutesPage() {
             <GavelSVG size={60} className="mx-auto mb-6 opacity-20" />
             <p className="text-lg text-gray-400 font-display">No Statutes Found</p>
             <p className="text-sm mt-2 text-gray-600">Try a different search or category</p>
+          </div>
+        )}
+
+        {hasMore && !loading && statutes.length > 0 && (
+          <div className="text-center mt-8">
+            <button onClick={loadMore} disabled={loadingMore}
+              className="px-8 py-3 bg-brass-400/20 text-brass-300 rounded-lg hover:bg-brass-400/30 transition-colors disabled:opacity-50">
+              {loadingMore ? 'Loading...' : `Load More (showing ${statutes.length})`}
+            </button>
           </div>
         )}
       </main>

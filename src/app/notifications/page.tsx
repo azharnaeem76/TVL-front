@@ -73,7 +73,7 @@ export default function NotificationsPage() {
   return (
     <div className="min-h-screen bg-navy-950 noise">
       <Navbar />
-      <main className="px-4 sm:px-6 pt-24 pb-16 max-w-3xl mx-auto">
+      <main className="px-4 sm:px-6 pt-24 pb-16 w-full">
         <div className="flex justify-between items-center mb-8">
           <div>
             <h1 className="text-2xl sm:text-3xl font-display font-bold text-white">Notifications</h1>

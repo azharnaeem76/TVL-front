@@ -960,7 +960,7 @@ export default function AdminPage() {
         </div>
       )}
 
-      <main className="max-w-7xl mx-auto px-4 pt-24 pb-16">
+      <main className="w-full px-4 pt-24 pb-16">
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div>

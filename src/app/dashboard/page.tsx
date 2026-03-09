@@ -217,7 +217,7 @@ export default function DashboardPage() {
       <Navbar />
 
       <main className="px-4 sm:px-6 pt-24 pb-16">
-          <div className="max-w-5xl mx-auto">
+          <div className="w-full">
             {/* Welcome Banner */}
             <div className="court-panel p-5 sm:p-8 mb-6 sm:mb-8 relative overflow-hidden">
               <CourtPillars />

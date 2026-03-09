@@ -66,7 +66,7 @@ export default function DirectoryPage() {
   return (
     <div className="min-h-screen bg-navy-950 noise">
       <Navbar />
-      <main className="px-4 sm:px-6 pt-24 pb-16 max-w-7xl mx-auto">
+      <main className="px-4 sm:px-6 pt-24 pb-16 w-full">
         <div className="mb-8">
           <h1 className="text-2xl sm:text-3xl font-display font-bold text-white">Lawyer Directory</h1>
           <p className="text-gray-500 text-sm mt-1">Find legal professionals across Pakistan</p>

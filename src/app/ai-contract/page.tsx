@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Navbar from '@/components/Navbar';
 import { useToast } from '@/components/Toast';
 import { aiAnalyzeContract, aiAnalyzeContractUpload } from '@/lib/api';
@@ -11,32 +11,43 @@ export default function AIContractPage() {
   const [text, setText] = useState('');
   const [result, setResult] = useState<any>(null);
   const [loading, setLoading] = useState(false);
+  const [elapsed, setElapsed] = useState(0);
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [inputMode, setInputMode] = useState<'paste' | 'upload'>('paste');
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const { showToast } = useToast();
+
+  useEffect(() => { return () => { if (timerRef.current) clearInterval(timerRef.current); }; }, []);
+
+  const startTimer = () => { setElapsed(0); timerRef.current = setInterval(() => setElapsed(e => e + 1), 1000); };
+  const stopTimer = () => { if (timerRef.current) clearInterval(timerRef.current); };
 
   const handleSubmit = async () => {
     if (inputMode === 'upload' && uploadedFile) {
       setLoading(true);
+      startTimer();
       try {
         const data = await aiAnalyzeContractUpload(uploadedFile);
         setResult(data);
       } catch (err: any) {
         showToast(err.message || 'Analysis failed', 'error');
       } finally {
+        stopTimer();
         setLoading(false);
       }
       return;
     }
     if (!text.trim()) return showToast('Please paste contract text', 'error');
     setLoading(true);
+    startTimer();
     try {
       const data = await aiAnalyzeContract(text);
       setResult(data);
     } catch (err: any) {
       showToast(err.message || 'Analysis failed', 'error');
     } finally {
+      stopTimer();
       setLoading(false);
     }
   };
@@ -68,7 +79,7 @@ export default function AIContractPage() {
     <>
       <Navbar />
       <div className="min-h-screen bg-navy-950 pt-20 px-4 pb-12">
-        <div className="max-w-4xl mx-auto">
+        <div className="w-full">
           <div className="mb-8">
             <h1 className="text-2xl font-display font-bold text-white">Contract Analyzer</h1>
             <p className="text-gray-400 mt-1">AI analysis of contracts for risky clauses under Pakistani law</p>
@@ -96,7 +107,7 @@ export default function AIContractPage() {
                   <span className="text-xs text-gray-500">{text.length} characters</span>
                   <button onClick={handleSubmit} disabled={loading || !text.trim()}
                     className="px-6 py-2.5 bg-brass-400/20 text-brass-300 rounded-lg hover:bg-brass-400/30 transition-colors disabled:opacity-50">
-                    {loading ? <span className="flex items-center gap-2"><svg className="animate-spin h-4 w-4" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" /></svg>Analyzing...</span> : 'Analyze Contract'}
+                    {loading ? <span className="flex items-center gap-2"><svg className="animate-spin h-4 w-4" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" /></svg>Analyzing... ({elapsed}s)</span> : 'Analyze Contract'}
                   </button>
                 </div>
               </>
@@ -133,7 +144,7 @@ export default function AIContractPage() {
                 <div className="flex justify-end mt-4">
                   <button onClick={handleSubmit} disabled={loading || !uploadedFile}
                     className="px-6 py-2.5 bg-brass-400/20 text-brass-300 rounded-lg hover:bg-brass-400/30 transition-colors disabled:opacity-50">
-                    {loading ? <span className="flex items-center gap-2"><svg className="animate-spin h-4 w-4" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" /></svg>Analyzing...</span> : 'Analyze Document'}
+                    {loading ? <span className="flex items-center gap-2"><svg className="animate-spin h-4 w-4" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" /></svg>Analyzing... ({elapsed}s)</span> : 'Analyze Document'}
                   </button>
                 </div>
               </>
