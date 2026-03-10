@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import Navbar from '@/components/Navbar';
 import { useToast } from '@/components/Toast';
-import { getCurrentUser, getConversations, getConversationMessages, sendDirectMessage, sendFileMessage, getMessagingContacts, deleteConversation, deleteMessage } from '@/lib/api';
+import { getCurrentUser, isLoggedIn, getConversations, getConversationMessages, sendDirectMessage, sendFileMessage, getMessagingContacts, deleteConversation, deleteMessage } from '@/lib/api';
 import { useSocket } from '@/lib/socket';
 
 const EMOJI_LIST = [
@@ -34,11 +34,13 @@ export default function MessagingPage() {
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
   const recordTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const recordingTimeRef = useRef(0);
+  const activeConvRef = useRef<any>(null);
   const { showToast } = useToast();
   const { on, emit, connected } = useSocket();
   const currentUser = getCurrentUser();
 
-  useEffect(() => { loadConversations(); }, []);
+  useEffect(() => { if (isLoggedIn()) loadConversations(); }, []);
   useEffect(() => { msgEndRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [messages]);
 
   useEffect(() => {
@@ -72,6 +74,7 @@ export default function MessagingPage() {
 
   const openConversation = async (conv: any) => {
     setActiveConv(conv);
+    activeConvRef.current = conv;
     setShowEmoji(false);
     try {
       const msgs = await getConversationMessages(conv.id);
@@ -129,6 +132,21 @@ export default function MessagingPage() {
 
   useEffect(() => { if (showNewChat) searchUsers(); }, [showNewChat, userSearch]);
 
+  if (!isLoggedIn()) {
+    return (
+      <>
+        <Navbar />
+        <div className="min-h-screen bg-navy-950 pt-20 px-4">
+          <div className="w-full max-w-md mx-auto text-center pt-32">
+            <h1 className="text-2xl font-display font-bold text-white mb-3">Messages</h1>
+            <p className="text-gray-400 mb-6">Please sign in to access messaging.</p>
+            <a href="/login" className="px-6 py-2.5 bg-brass-400/20 text-brass-300 rounded-lg hover:bg-brass-400/30 transition-colors">Sign In</a>
+          </div>
+        </div>
+      </>
+    );
+  }
+
   // ─── File Upload ────────────────────────────────────────────────
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -164,6 +182,7 @@ export default function MessagingPage() {
       mediaRecorderRef.current = mediaRecorder;
       audioChunksRef.current = [];
       setRecordingTime(0);
+      recordingTimeRef.current = 0;
 
       mediaRecorder.ondataavailable = (e) => {
         if (e.data.size > 0) audioChunksRef.current.push(e.data);
@@ -171,15 +190,17 @@ export default function MessagingPage() {
 
       mediaRecorder.onstop = async () => {
         stream.getTracks().forEach(t => t.stop());
+        const conv = activeConvRef.current;
+        if (!conv) return;
         const mimeType = mediaRecorder.mimeType;
         const ext = mimeType.includes('webm') ? 'webm' : 'mp4';
         const blob = new Blob(audioChunksRef.current, { type: mimeType });
         const file = new File([blob], `voice-message.${ext}`, { type: mimeType });
-        const duration = recordingTime;
+        const duration = recordingTimeRef.current;
 
         setSending(true);
         try {
-          const msg = await sendFileMessage(activeConv.other_user.id, file, 'voice', duration);
+          const msg = await sendFileMessage(conv.other_user.id, file, 'voice', duration);
           setMessages(prev => [...prev, msg]);
           loadConversations();
         } catch (err: any) {
@@ -192,7 +213,8 @@ export default function MessagingPage() {
       setRecording(true);
 
       recordTimerRef.current = setInterval(() => {
-        setRecordingTime(prev => prev + 1);
+        recordingTimeRef.current += 1;
+        setRecordingTime(recordingTimeRef.current);
       }, 1000);
     } catch {
       showToast('Microphone access denied', 'error');
@@ -217,6 +239,7 @@ export default function MessagingPage() {
       audioChunksRef.current = [];
       setRecording(false);
       setRecordingTime(0);
+      recordingTimeRef.current = 0;
       if (recordTimerRef.current) {
         clearInterval(recordTimerRef.current);
         recordTimerRef.current = null;
