@@ -98,10 +98,20 @@ export async function scenarioSearch(query: string, options?: {
 }) {
   const isGuest = !isLoggedIn();
   const endpoint = isGuest ? '/search/scenario/guest' : '/search/scenario';
-  return request(endpoint, {
+  // Call backend directly to bypass Next.js proxy timeout
+  const token = getToken();
+  const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+  if (token) headers['Authorization'] = `Bearer ${token}`;
+  const res = await fetch(`http://localhost:8000/api/v1${endpoint}`, {
     method: 'POST',
+    headers,
     body: JSON.stringify({ query, ...options }),
-  }, 180000);
+  });
+  if (!res.ok) {
+    const error = await res.json().catch(() => ({ detail: 'Request failed' }));
+    throw new Error(error.detail || 'Request failed');
+  }
+  return res.json();
 }
 
 export async function detectLanguage(text: string) {
@@ -142,10 +152,12 @@ export async function sendChatMessageStream(
   onToken?: (token: string) => void,
   onCitations?: (cases: any[]) => void,
   onDone?: (data: { session_id: number; message_id: number }) => void,
+  signal?: AbortSignal,
 ) {
   const token = getToken();
   // Use direct backend URL for SSE streaming to avoid Next.js proxy buffering
-  const streamUrl = 'http://localhost:8000/api/v1/chat/message/stream';
+  const backendHost = typeof window !== 'undefined' ? window.location.hostname : 'localhost';
+  const streamUrl = `http://${backendHost}:8000/api/v1/chat/message/stream`;
   const res = await fetch(streamUrl, {
     method: 'POST',
     headers: {
@@ -153,6 +165,7 @@ export async function sendChatMessageStream(
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
     },
     body: JSON.stringify({ message, session_id: sessionId }),
+    signal,
   });
   if (!res.ok) {
     const error = await res.json().catch(() => ({ detail: 'Request failed' }));
@@ -162,22 +175,28 @@ export async function sendChatMessageStream(
   if (!reader) throw new Error('No response body');
   const decoder = new TextDecoder();
   let buffer = '';
-  while (true) {
-    const { done, value } = await reader.read();
-    if (done) break;
-    buffer += decoder.decode(value, { stream: true });
-    const lines = buffer.split('\n');
-    buffer = lines.pop() || '';
-    for (const line of lines) {
-      if (line.startsWith('data: ')) {
-        try {
-          const data = JSON.parse(line.slice(6));
-          if (data.type === 'token') onToken?.(data.content);
-          else if (data.type === 'citations') onCitations?.(data.cases);
-          else if (data.type === 'done') onDone?.(data);
-        } catch {}
+  try {
+    while (true) {
+      if (signal?.aborted) { reader.cancel(); break; }
+      const { done, value } = await reader.read();
+      if (done) break;
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split('\n');
+      buffer = lines.pop() || '';
+      for (const line of lines) {
+        if (line.startsWith('data: ')) {
+          try {
+            const data = JSON.parse(line.slice(6));
+            if (data.type === 'token') onToken?.(data.content);
+            else if (data.type === 'citations') onCitations?.(data.cases);
+            else if (data.type === 'done') onDone?.(data);
+          } catch {}
+        }
       }
     }
+  } catch (err: any) {
+    if (err.name === 'AbortError') return; // User cancelled — not an error
+    throw err;
   }
 }
 

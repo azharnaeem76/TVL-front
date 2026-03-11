@@ -39,6 +39,9 @@ const ICO = {
   bookmark: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17.593 3.322c1.1.128 1.907 1.077 1.907 2.185V21L12 17.25 4.5 21V5.507c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0111.186 0z" /></svg>,
   glossary: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25" /></svg>,
   profile: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" /></svg>,
+  inheritance: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3.75 21h16.5M4.5 3h15M5.25 3v18m13.5-18v18M9 6.75h1.5m-1.5 3h1.5m-1.5 3h1.5m3-6H15m-1.5 3H15m-1.5 3H15M9 21v-3.375c0-.621.504-1.125 1.125-1.125h3.75c.621 0 1.125.504 1.125 1.125V21" /></svg>,
+  research: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m5.231 13.481L15 17.25m-4.5-15H5.625c-.621 0-1.125.504-1.125 1.125v16.5c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9zm3.75 11.625a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z" /></svg>,
+  marketplace: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M13.5 21v-7.5a.75.75 0 01.75-.75h3a.75.75 0 01.75.75V21m-4.5 0H2.36m11.14 0H18m0 0h3.64m-1.39 0V9.349m-16.5 11.65V9.35m0 0a3.001 3.001 0 003.75-.615A2.993 2.993 0 009.75 9.75c.896 0 1.7-.393 2.25-1.016a2.993 2.993 0 002.25 1.016c.896 0 1.7-.393 2.25-1.016a3.001 3.001 0 003.75.614m-16.5 0a3.004 3.004 0 01-.621-4.72L4.318 3.44A1.5 1.5 0 015.378 3h13.243a1.5 1.5 0 011.06.44l1.19 1.189a3 3 0 01-.621 4.72m-13.5 8.65h3.75a.75.75 0 00.75-.75V13.5a.75.75 0 00-.75-.75H6.75a.75.75 0 00-.75.75v3.75c0 .415.336.75.75.75z" /></svg>,
   caseTracker: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20.25 14.15v4.25c0 1.094-.787 2.036-1.872 2.18-2.087.277-4.216.42-6.378.42s-4.291-.143-6.378-.42c-1.085-.144-1.872-1.086-1.872-2.18v-4.25m16.5 0a2.18 2.18 0 00.75-1.661V8.706c0-1.081-.768-2.015-1.837-2.175a48.114 48.114 0 00-3.413-.387m4.5 8.006c-.194.165-.42.295-.673.38A23.978 23.978 0 0112 15.75c-2.648 0-5.195-.429-7.577-1.22a2.016 2.016 0 01-.673-.38m0 0A2.18 2.18 0 013 12.489V8.706c0-1.081.768-2.015 1.837-2.175a48.111 48.111 0 013.413-.387m7.5 0V5.25A2.25 2.25 0 0013.5 3h-3a2.25 2.25 0 00-2.25 2.25v.894m7.5 0a48.667 48.667 0 00-7.5 0" /></svg>,
   clients: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M18 18.72a9.094 9.094 0 003.741-.479 3 3 0 00-4.682-2.72m.94 3.198l.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0112 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 016 18.719m12 0a5.971 5.971 0 00-.941-3.197m0 0A5.995 5.995 0 0012 12.75a5.995 5.995 0 00-5.058 2.772m0 0a3 3 0 00-4.681 2.72 8.986 8.986 0 003.74.477m.94-3.197a5.971 5.971 0 00-.94 3.197M15 6.75a3 3 0 11-6 0 3 3 0 016 0zm6 3a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0zm-13.5 0a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0z" /></svg>,
   directory: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 3v17.25m0 0c-1.472 0-2.882.265-4.185.75M12 20.25c1.472 0 2.882.265 4.185.75M18.75 4.97A48.416 48.416 0 0012 4.5c-2.291 0-4.545.16-6.75.47m13.5 0c1.01.143 2.01.317 3 .52m-3-.52l2.62 10.726c.122.499-.106 1.028-.589 1.202a5.988 5.988 0 01-2.031.352 5.988 5.988 0 01-2.031-.352c-.483-.174-.711-.703-.59-1.202L18.75 4.971zm-16.5.52c.99-.203 1.99-.377 3-.52m0 0l2.62 10.726c.122.499-.106 1.028-.589 1.202a5.989 5.989 0 01-2.031.352 5.989 5.989 0 01-2.031-.352c-.483-.174-.711-.703-.59-1.202L5.25 4.971z" /></svg>,
@@ -51,16 +54,19 @@ function getSidebarLinks(role: string): { section: string; links: SidebarLink[] 
       return [
         { section: 'Management', links: [
           { href: '/admin', label: 'Admin Panel', icon: ICO.admin },
-          { href: '/analytics', label: 'Analytics', icon: ICO.analytics },
+          { href: '/analytics-v2', label: 'Analytics', icon: ICO.analytics },
+          { href: '/marketplace', label: 'Marketplace', icon: ICO.marketplace },
         ]},
         { section: 'Research', links: [
           { href: '/search', label: 'Scenario Search', icon: ICO.search },
+          { href: '/legal-research', label: 'AI Research Agent', icon: ICO.research },
           { href: '/case-laws', label: 'Case Laws', icon: ICO.cases },
           { href: '/statutes', label: 'Statutes', icon: ICO.statutes },
           { href: '/chat', label: 'AI Chat', icon: ICO.chat },
         ]},
         { section: 'Tools', links: [
           { href: '/drafting', label: 'Drafting', icon: ICO.drafting },
+          { href: '/inheritance', label: 'Inheritance', icon: ICO.inheritance },
           { href: '/calendar', label: 'Calendar', icon: ICO.calendar },
           { href: '/news', label: 'News', icon: ICO.news },
           { href: '/directory', label: 'Lawyer Directory', icon: ICO.directory },
@@ -74,6 +80,7 @@ function getSidebarLinks(role: string): { section: string; links: SidebarLink[] 
       return [
         { section: 'Practice', links: [
           { href: '/search', label: 'Scenario Search', icon: ICO.search },
+          { href: '/legal-research', label: 'AI Research Agent', icon: ICO.research },
           { href: '/case-laws', label: 'Case Laws', icon: ICO.cases },
           { href: '/statutes', label: 'Statutes', icon: ICO.statutes },
           { href: '/chat', label: 'AI Chat', icon: ICO.chat },
@@ -82,10 +89,12 @@ function getSidebarLinks(role: string): { section: string; links: SidebarLink[] 
           { href: '/case-tracker', label: 'Case Tracker', icon: ICO.caseTracker },
           { href: '/clients', label: 'Client CRM', icon: ICO.clients },
           { href: '/drafting', label: 'Document Drafting', icon: ICO.drafting },
+          { href: '/inheritance', label: 'Inheritance Calculator', icon: ICO.inheritance },
           { href: '/calendar', label: 'Legal Calendar', icon: ICO.calendar },
-          { href: '/analytics', label: 'Analytics', icon: ICO.analytics },
+          { href: '/analytics-v2', label: 'Analytics', icon: ICO.analytics },
         ]},
         { section: 'Resources', links: [
+          { href: '/marketplace', label: 'Marketplace', icon: ICO.marketplace },
           { href: '/directory', label: 'Lawyer Directory', icon: ICO.directory },
           { href: '/news', label: 'Legal News', icon: ICO.news },
           { href: '/notifications', label: 'Notifications', icon: ICO.notifications },
@@ -96,14 +105,16 @@ function getSidebarLinks(role: string): { section: string; links: SidebarLink[] 
       return [
         { section: 'Research', links: [
           { href: '/search', label: 'Scenario Search', icon: ICO.search },
+          { href: '/legal-research', label: 'AI Research Agent', icon: ICO.research },
           { href: '/case-laws', label: 'Case Laws', icon: ICO.cases },
           { href: '/statutes', label: 'Statutes & Acts', icon: ICO.statutes },
           { href: '/chat', label: 'AI Chat', icon: ICO.chat },
         ]},
         { section: 'Judicial Tools', links: [
           { href: '/case-tracker', label: 'Case Tracker', icon: ICO.caseTracker },
+          { href: '/inheritance', label: 'Inheritance Calculator', icon: ICO.inheritance },
           { href: '/calendar', label: 'Court Calendar', icon: ICO.calendar },
-          { href: '/analytics', label: 'Analytics', icon: ICO.analytics },
+          { href: '/analytics-v2', label: 'Analytics', icon: ICO.analytics },
           { href: '/news', label: 'Legal News', icon: ICO.news },
           { href: '/directory', label: 'Directory', icon: ICO.directory },
         ]},
@@ -120,12 +131,14 @@ function getSidebarLinks(role: string): { section: string; links: SidebarLink[] 
         ]},
         { section: 'Research', links: [
           { href: '/search', label: 'Scenario Search', icon: ICO.search },
+          { href: '/legal-research', label: 'AI Research Agent', icon: ICO.research },
           { href: '/case-laws', label: 'Case Laws', icon: ICO.cases },
           { href: '/statutes', label: 'Statutes', icon: ICO.statutes },
           { href: '/chat', label: 'AI Chat', icon: ICO.chat },
         ]},
         { section: 'Practice', links: [
           { href: '/drafting', label: 'Draft Documents', icon: ICO.drafting },
+          { href: '/inheritance', label: 'Inheritance Calculator', icon: ICO.inheritance },
           { href: '/directory', label: 'Lawyer Directory', icon: ICO.directory },
           { href: '/settings', label: 'Settings', icon: ICO.settings },
         ]},
@@ -137,11 +150,13 @@ function getSidebarLinks(role: string): { section: string; links: SidebarLink[] 
           { href: '/learn', label: 'Know Your Rights', icon: ICO.learn },
           { href: '/chat', label: 'Ask AI Lawyer', icon: ICO.chat },
           { href: '/search', label: 'Find Cases', icon: ICO.search },
+          { href: '/legal-research', label: 'AI Research Agent', icon: ICO.research },
         ]},
         { section: 'Tools', links: [
           { href: '/case-laws', label: 'Case Laws', icon: ICO.cases },
           { href: '/drafting', label: 'Documents', icon: ICO.drafting },
-          { href: '/directory', label: 'Lawyer Directory', icon: ICO.directory },
+          { href: '/inheritance', label: 'Inheritance Calculator', icon: ICO.inheritance },
+          { href: '/marketplace', label: 'Find a Lawyer', icon: ICO.marketplace },
           { href: '/news', label: 'Legal News', icon: ICO.news },
         ]},
         { section: 'Account', links: [
@@ -171,7 +186,7 @@ function AdminStatsPanel() {
     <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6">
       {[
         { label: 'Total Users', value: '5', sub: 'Demo accounts', color: 'text-blue-400' },
-        { label: 'Case Laws', value: '15+', sub: 'In database', color: 'text-green-400' },
+        { label: 'Case Laws', value: '15+', sub: 'Available', color: 'text-green-400' },
         { label: 'Statutes', value: '10+', sub: 'With sections', color: 'text-purple-400' },
         { label: 'Status', value: 'Active', sub: 'All services up', color: 'text-brass-400' },
       ].map((s, i) => (
@@ -189,16 +204,46 @@ function AdminStatsPanel() {
 /*  Main Dashboard                                                     */
 /* ------------------------------------------------------------------ */
 
+// Map route paths to feature flag keys
+const ROUTE_FEATURE_MAP: Record<string, string> = {
+  '/search': 'search',
+  '/case-laws': 'case_laws',
+  '/statutes': 'statutes',
+  '/chat': 'chat',
+  '/drafting': 'drafting',
+  '/calendar': 'calendar',
+  '/news': 'news',
+  '/directory': 'lawyer_directory',
+  '/case-tracker': 'case_tracker',
+  '/clients': 'client_crm',
+  '/messaging': 'messaging',
+  '/forum': 'forum',
+  '/learn': 'learn',
+  '/quiz': 'quiz',
+  '/inheritance': 'inheritance',
+  '/legal-research': 'legal_research',
+  '/analytics-v2': 'analytics_v2',
+  '/marketplace': 'marketplace',
+  '/moot-court': 'moot_court',
+  '/consultations': 'consultation_booking',
+};
+
 export default function DashboardPage() {
   const router = useRouter();
   const [user, setUser] = useState<any>(null);
   const { bookmarks, removeBookmark, updateNote } = useBookmarks();
   const [editingNote, setEditingNote] = useState<number | null>(null);
   const { savedSearches, removeSearch: removeSaved } = useSavedSearches();
+  const [enabledFeatures, setEnabledFeatures] = useState<string[]>([]);
 
   useEffect(() => {
     if (!isLoggedIn()) { router.replace('/login'); return; }
     setUser(getCurrentUser());
+    // Fetch enabled feature flags
+    fetch('/api/v1/features/enabled')
+      .then(r => r.json())
+      .then(data => setEnabledFeatures(data.enabled || []))
+      .catch(() => {}); // Fail silently - show all if can't fetch
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -209,7 +254,21 @@ export default function DashboardPage() {
     law_student: 'Law Student', client: 'Litigant', admin: 'Administrator',
   };
 
-  const quickActionLinks = getSidebarLinks(user.role).flatMap(s => s.links).filter(l => l.href !== '/settings' && l.href !== '/dashboard').slice(0, 8);
+  // Filter sidebar links by enabled feature flags
+  const rawSections = getSidebarLinks(user.role);
+  const filteredSections = rawSections.map(section => ({
+    ...section,
+    links: section.links.filter(link => {
+      const featureKey = ROUTE_FEATURE_MAP[link.href];
+      // If no feature mapping, always show (admin, settings, notifications, etc.)
+      if (!featureKey) return true;
+      // If we haven't loaded features yet, show all
+      if (enabledFeatures.length === 0) return true;
+      return enabledFeatures.includes(featureKey);
+    }),
+  })).filter(section => section.links.length > 0);
+
+  const quickActionLinks = filteredSections.flatMap(s => s.links).filter(l => l.href !== '/settings' && l.href !== '/dashboard').slice(0, 8);
   const roleWelcome = getRoleWelcome(user.role);
 
   return (

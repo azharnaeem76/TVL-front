@@ -20,6 +20,8 @@ interface CitedCase {
   court: string;
   year: number | null;
   summary_en: string | null;
+  summary_ur: string | null;
+  headnotes: string | null;
 }
 
 export default function ChatPage() {
@@ -31,8 +33,14 @@ export default function ChatPage() {
   const [citedCases, setCitedCases] = useState<CitedCase[]>([]);
   const [sessions, setSessions] = useState<any[]>([]);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [copiedId, setCopiedId] = useState<number | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
   const streamingContentRef = useRef('');
+  const flushTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const placeholderIdRef = useRef<number>(0);
+  const abortControllerRef = useRef<AbortController | null>(null);
+  const userScrolledUpRef = useRef(false);
 
   useEffect(() => {
     if (isLoggedIn()) {
@@ -40,9 +48,45 @@ export default function ChatPage() {
     }
   }, []);
 
+  // Smart auto-scroll: only scroll to bottom if user hasn't scrolled up
+  const scrollToBottom = useCallback(() => {
+    if (!userScrolledUpRef.current) {
+      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, []);
+
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
+    scrollToBottom();
+  }, [messages, scrollToBottom]);
+
+  // Detect if user has scrolled up
+  const handleScroll = useCallback(() => {
+    const container = messagesContainerRef.current;
+    if (!container) return;
+    const threshold = 100; // px from bottom
+    const isAtBottom = container.scrollHeight - container.scrollTop - container.clientHeight < threshold;
+    userScrolledUpRef.current = !isAtBottom;
+  }, []);
+
+  // Stop streaming
+  const handleStop = useCallback(() => {
+    abortControllerRef.current?.abort();
+    abortControllerRef.current = null;
+    if (flushTimerRef.current) {
+      clearTimeout(flushTimerRef.current);
+      flushTimerRef.current = null;
+    }
+    // Flush whatever content we have so far
+    const pid = placeholderIdRef.current;
+    const content = streamingContentRef.current;
+    if (content) {
+      setMessages(prev =>
+        prev.map(m => m.id === pid ? { ...m, content } : m)
+      );
+    }
+    setLoading(false);
+    setStreaming(false);
+  }, []);
 
   if (!isLoggedIn()) {
     return (
@@ -60,9 +104,14 @@ export default function ChatPage() {
     );
   }
 
-  const handleSend = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!input.trim() || loading || streaming) return;
+  const handleSend = async (e?: React.FormEvent) => {
+    e?.preventDefault();
+    if (!input.trim()) return;
+
+    // If currently streaming, stop it first then send new message
+    if (streaming || loading) {
+      handleStop();
+    }
 
     const userMessage = input.trim();
     setInput('');
@@ -76,21 +125,34 @@ export default function ChatPage() {
     setLoading(true);
     setStreaming(true);
     streamingContentRef.current = '';
+    placeholderIdRef.current = placeholderId;
+    userScrolledUpRef.current = false; // Reset scroll lock on new message
+
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
+
+    const flushContent = () => {
+      const pid = placeholderIdRef.current;
+      const content = streamingContentRef.current;
+      setMessages(prev =>
+        prev.map(m => m.id === pid ? { ...m, content } : m)
+      );
+    };
 
     try {
       await sendChatMessageStream(
         userMessage,
         sessionId || undefined,
-        // onToken
+        // onToken — batched: accumulate tokens and flush every 50ms
         (token) => {
           setLoading(false);
           streamingContentRef.current += token;
-          setMessages(prev =>
-            prev.map(m => m.id === placeholderId
-              ? { ...m, content: streamingContentRef.current }
-              : m
-            )
-          );
+          if (!flushTimerRef.current) {
+            flushTimerRef.current = setTimeout(() => {
+              flushTimerRef.current = null;
+              flushContent();
+            }, 50);
+          }
         },
         // onCitations
         (cases) => {
@@ -102,33 +164,43 @@ export default function ChatPage() {
             });
           }
         },
-        // onDone
+        // onDone — flush any remaining batched content
         (data) => {
+          if (flushTimerRef.current) {
+            clearTimeout(flushTimerRef.current);
+            flushTimerRef.current = null;
+          }
+          const finalContent = streamingContentRef.current;
           setSessionId(data.session_id);
           setMessages(prev =>
             prev.map(m => m.id === placeholderId
-              ? { ...m, id: data.message_id }
+              ? { ...m, id: data.message_id, content: finalContent }
               : m
             )
           );
           getChatSessions().then(setSessions).catch(() => {});
         },
+        controller.signal,
       );
     } catch (err: any) {
-      setMessages(prev =>
-        prev.map(m => m.id === placeholderId
-          ? { ...m, content: `Error: ${err.message}. Make sure the backend server is running.` }
-          : m
-        )
-      );
+      if (err.name !== 'AbortError') {
+        setMessages(prev =>
+          prev.map(m => m.id === placeholderId
+            ? { ...m, content: `Error: ${err.message}. Make sure the backend server is running.` }
+            : m
+          )
+        );
+      }
     } finally {
       setLoading(false);
       setStreaming(false);
+      abortControllerRef.current = null;
     }
   };
 
   const loadSession = async (id: number) => {
     try {
+      if (streaming) handleStop();
       const msgs = await getSessionMessages(id);
       setMessages(msgs);
       setSessionId(id);
@@ -156,6 +228,7 @@ export default function ChatPage() {
   };
 
   const newChat = () => {
+    if (streaming) handleStop();
     setMessages([]);
     setSessionId(null);
     setCitedCases([]);
@@ -224,7 +297,11 @@ export default function ChatPage() {
           </div>
 
           {/* Messages */}
-          <div className="flex-1 overflow-y-auto p-4 space-y-4">
+          <div
+            ref={messagesContainerRef}
+            onScroll={handleScroll}
+            className="flex-1 overflow-y-auto p-4 space-y-4"
+          >
             {messages.length === 0 && (
               <div className="text-center py-20">
                 <GavelSVG size={50} className="mx-auto mb-4 opacity-15 animate-gavel-idle" />
@@ -258,9 +335,32 @@ export default function ChatPage() {
                     : 'court-panel text-gray-200 rounded-bl-md'
                 }`}>
                   {msg.role === 'assistant' && (
-                    <div className="flex items-center gap-2 mb-2 pb-2 border-b border-brass-400/10">
-                      <GavelSVG size={14} className="opacity-40" />
-                      <span className="text-[10px] text-brass-400/50 uppercase tracking-wider font-semibold">AI Response</span>
+                    <div className="flex items-center justify-between mb-2 pb-2 border-b border-brass-400/10">
+                      <div className="flex items-center gap-2">
+                        <GavelSVG size={14} className="opacity-40" />
+                        <span className="text-[10px] text-brass-400/50 uppercase tracking-wider font-semibold">AI Response</span>
+                      </div>
+                      {msg.content && !streaming && (
+                        <button
+                          onClick={() => {
+                            navigator.clipboard.writeText(msg.content);
+                            setCopiedId(msg.id);
+                            setTimeout(() => setCopiedId(null), 2000);
+                          }}
+                          className="p-1 rounded hover:bg-white/10 text-gray-500 hover:text-brass-300 transition-all"
+                          title="Copy response"
+                        >
+                          {copiedId === msg.id ? (
+                            <svg className="w-3.5 h-3.5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                            </svg>
+                          ) : (
+                            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                            </svg>
+                          )}
+                        </button>
+                      )}
                     </div>
                   )}
                   <div className="prose text-sm whitespace-pre-wrap leading-relaxed">{msg.content}</div>
@@ -297,14 +397,26 @@ export default function ChatPage() {
                 onChange={(e) => setInput(e.target.value)}
                 placeholder="Ask a legal question... (English, Urdu, Roman Urdu)"
                 className="input-field flex-1 !border-brass-400/10 focus:!border-brass-400/30"
-                disabled={loading || streaming}
               />
               <VoiceSearch onResult={(text) => setInput(prev => prev ? prev + ' ' + text : text)} />
-              <button type="submit" disabled={loading || streaming || !input.trim()} className="btn-primary !px-6">
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
-                </svg>
-              </button>
+              {streaming ? (
+                <button
+                  type="button"
+                  onClick={handleStop}
+                  className="btn-primary !px-6 !bg-red-600/80 hover:!bg-red-600"
+                  title="Stop generating"
+                >
+                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                    <rect x="6" y="6" width="12" height="12" rx="2" />
+                  </svg>
+                </button>
+              ) : (
+                <button type="submit" disabled={!input.trim()} className="btn-primary !px-6">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                  </svg>
+                </button>
+              )}
             </form>
           </div>
         </div>
@@ -314,13 +426,21 @@ export default function ChatPage() {
           <div className="w-72 border-l border-brass-400/10 p-4 hidden xl:block overflow-y-auto">
             <h3 className="text-xs font-display font-semibold text-brass-400/50 uppercase tracking-wider mb-3">Cited Precedents</h3>
             <div className="space-y-3">
-              {citedCases.map(c => (
-                <div key={c.id} className="card-court !p-3 text-xs">
-                  <p className="font-mono font-semibold text-brass-300 mb-1">{c.citation}</p>
-                  <p className="text-gray-300 font-medium">{c.title}</p>
-                  <p className="text-gray-500 mt-1">{c.court?.replace(/_/g, ' ')} {c.year && `(${c.year})`}</p>
-                </div>
-              ))}
+              {citedCases.map(c => {
+                const summary = c.summary_ur || c.summary_en;
+                return (
+                  <div key={c.id} className="card-court !p-3 text-xs">
+                    <p className="font-mono font-semibold text-brass-300 mb-1">{c.citation}</p>
+                    <p className="text-gray-300 font-medium">{c.title}</p>
+                    <p className="text-gray-500 mt-1">{c.court?.replace(/_/g, ' ')} {c.year && `(${c.year})`}</p>
+                    {summary && summary !== '.' && (
+                      <p className={`text-gray-400 mt-2 line-clamp-4 leading-relaxed ${c.summary_ur ? 'text-right' : ''}`} dir={c.summary_ur ? 'rtl' : 'ltr'}>
+                        {summary.slice(0, 200)}{summary.length > 200 ? '…' : ''}
+                      </p>
+                    )}
+                  </div>
+                );
+              })}
             </div>
           </div>
         )}

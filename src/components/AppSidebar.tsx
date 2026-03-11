@@ -43,6 +43,7 @@ const ICO = {
   consultation: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5m-9-6h.008v.008H12v-.008zM12 15h.008v.008H12V15zm0 2.25h.008v.008H12v-.008zM9.75 15h.008v.008H9.75V15zm0 2.25h.008v.008H9.75v-.008zM7.5 15h.008v.008H7.5V15zm0 2.25h.008v.008H7.5v-.008zm6.75-4.5h.008v.008h-.008v-.008zm0 2.25h.008v.008h-.008V15zm0 2.25h.008v.008h-.008v-.008zm2.25-4.5h.008v.008H16.5v-.008zm0 2.25h.008v.008H16.5V15z" /></svg>,
   payment: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5z" /></svg>,
   subscription: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M11.48 3.499a.562.562 0 011.04 0l2.125 5.111a.563.563 0 00.475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 00-.182.557l1.285 5.385a.562.562 0 01-.84.61l-4.725-2.885a.563.563 0 00-.586 0L6.982 20.54a.562.562 0 01-.84-.61l1.285-5.386a.562.562 0 00-.182-.557l-4.204-3.602a.563.563 0 01.321-.988l5.518-.442a.563.563 0 00.475-.345L11.48 3.5z" /></svg>,
+  inheritance: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 3v17.25m0 0c-1.472 0-2.882.265-4.185.75M12 20.25c1.472 0 2.882.265 4.185.75M18.75 4.97A48.416 48.416 0 0012 4.5c-2.291 0-4.545.16-6.75.47m13.5 0c1.01.143 2.01.317 3 .52m-3-.52l2.62 10.726c.122.499-.106 1.028-.589 1.202a5.988 5.988 0 01-2.031.352 5.988 5.988 0 01-2.031-.352c-.483-.174-.711-.703-.59-1.202L18.75 4.971zm-16.5.52c.99-.203 1.99-.377 3-.52m0 0l2.62 10.726c.122.499-.106 1.028-.589 1.202a5.989 5.989 0 01-2.031.352 5.989 5.989 0 01-2.031-.352c-.483-.174-.711-.703-.59-1.202L5.25 4.971z" /></svg>,
   mootCourt: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 3v17.25m0 0c-1.472 0-2.882.265-4.185.75M12 20.25c1.472 0 2.882.265 4.185.75M18.75 4.97A48.416 48.416 0 0012 4.5c-2.291 0-4.545.16-6.75.47m13.5 0c1.01.143 2.01.317 3 .52m-3-.52l2.62 10.726c.122.499-.106 1.028-.589 1.202a5.988 5.988 0 01-2.031.352 5.988 5.988 0 01-2.031-.352c-.483-.174-.711-.703-.59-1.202L18.75 4.971zm-16.5.52c.99-.203 1.99-.377 3-.52m0 0l2.62 10.726c.122.499-.106 1.028-.589 1.202a5.989 5.989 0 01-2.031.352 5.989 5.989 0 01-2.031-.352c-.483-.174-.711-.703-.59-1.202L5.25 4.971z" /></svg>,
   examPrep: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4.26 10.147a60.438 60.438 0 00-.491 6.347A48.62 48.62 0 0112 20.904a48.62 48.62 0 018.232-4.41 60.46 60.46 0 00-.491-6.347m-15.482 0a50.636 50.636 0 00-2.658-.813A59.906 59.906 0 0112 3.493a59.903 59.903 0 0110.399 5.84c-.896.248-1.783.52-2.658.814m-15.482 0A50.717 50.717 0 0112 13.489a50.702 50.702 0 017.74-3.342M6.75 15a.75.75 0 100-1.5.75.75 0 000 1.5zm0 0v-3.675A55.378 55.378 0 0112 8.443m-7.007 11.55A5.981 5.981 0 006.75 15.75v-1.5" /></svg>,
   auditLog: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 002.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 00-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 00.75-.75 2.25 2.25 0 00-.1-.664m-5.8 0A2.251 2.251 0 0113.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25z" /></svg>,
@@ -82,6 +83,7 @@ function getSidebarLinks(role: string): { section: string; links: SidebarLink[] 
           { href: '/citations', label: 'Citation Finder', icon: ICO.citation },
         ]},
         { section: 'Tools', links: [
+          { href: '/inheritance', label: 'Inheritance Calculator', icon: ICO.inheritance },
           { href: '/drafting', label: 'Drafting', icon: ICO.drafting },
           { href: '/documents', label: 'Document Analysis', icon: ICO.documents },
           { href: '/bookmarks', label: 'Bookmarks', icon: ICO.bookmarks },
@@ -123,6 +125,7 @@ function getSidebarLinks(role: string): { section: string; links: SidebarLink[] 
         { section: 'Workflow', links: [
           { href: '/case-tracker', label: 'Case Tracker', icon: ICO.caseTracker },
           { href: '/clients', label: 'Client CRM', icon: ICO.clients },
+          { href: '/inheritance', label: 'Inheritance Calculator', icon: ICO.inheritance },
           { href: '/drafting', label: 'Document Drafting', icon: ICO.drafting },
           { href: '/consultations', label: 'Consultations', icon: ICO.consultation },
           { href: '/messaging', label: 'Messages', icon: ICO.messaging },
@@ -160,6 +163,7 @@ function getSidebarLinks(role: string): { section: string; links: SidebarLink[] 
         ]},
         { section: 'Judicial Tools', links: [
           { href: '/case-tracker', label: 'Case Tracker', icon: ICO.caseTracker },
+          { href: '/inheritance', label: 'Inheritance Calculator', icon: ICO.inheritance },
           { href: '/calendar', label: 'Court Calendar', icon: ICO.calendar },
           { href: '/analytics', label: 'Analytics', icon: ICO.analytics },
           { href: '/news', label: 'Legal News', icon: ICO.news },
@@ -195,6 +199,7 @@ function getSidebarLinks(role: string): { section: string; links: SidebarLink[] 
         ]},
         { section: 'Practice', links: [
           { href: '/ai-summarizer', label: 'AI Summarizer', icon: ICO.aiTool },
+          { href: '/inheritance', label: 'Inheritance Calculator', icon: ICO.inheritance },
           { href: '/drafting', label: 'Draft Documents', icon: ICO.drafting },
           { href: '/forum', label: 'Community Forum', icon: ICO.forum },
           { href: '/bookmarks', label: 'Bookmarks', icon: ICO.bookmarks },
@@ -224,6 +229,7 @@ function getSidebarLinks(role: string): { section: string; links: SidebarLink[] 
         ]},
         { section: 'Tools', links: [
           { href: '/case-tracker', label: 'Case Tracker', icon: ICO.caseTracker },
+          { href: '/inheritance', label: 'Inheritance Calculator', icon: ICO.inheritance },
           { href: '/drafting', label: 'Drafting', icon: ICO.drafting },
           { href: '/documents', label: 'Document Analysis', icon: ICO.documents },
           { href: '/bookmarks', label: 'Bookmarks', icon: ICO.bookmarks },
@@ -255,6 +261,7 @@ function getSidebarLinks(role: string): { section: string; links: SidebarLink[] 
         ]},
         { section: 'Tools', links: [
           { href: '/case-laws', label: 'Case Laws', icon: ICO.cases },
+          { href: '/inheritance', label: 'Inheritance Calculator', icon: ICO.inheritance },
           { href: '/drafting', label: 'Documents', icon: ICO.drafting },
           { href: '/consultations', label: 'Book Consultation', icon: ICO.consultation },
           { href: '/messaging', label: 'Messages', icon: ICO.messaging },
